@@ -1,0 +1,205 @@
+# Perfume Catalog Backend
+
+A Spring Boot backend application for managing a perfume catalog system with categories, brands, and perfumes.
+
+## Features
+
+- **Authentication & Authorization**: JWT-based authentication with role-based access control
+- **Category Management**: CRUD operations for perfume categories (Men, Women, Unisex)
+- **Brand Management**: CRUD operations for perfume brands within categories
+- **Perfume Management**: CRUD operations for perfumes within brands
+- **Search & Filtering**: Advanced search and filtering capabilities
+- **Admin Panel**: Administrative functions for user and content management
+- **RESTful API**: Clean REST API design with proper HTTP status codes
+- **Data Validation**: Input validation using Bean Validation annotations
+- **Exception Handling**: Global exception handling with proper error responses
+- **CORS Support**: Cross-origin resource sharing configuration
+
+## Technology Stack
+
+- **Java 17**
+- **Spring Boot 3.2.0**
+- **Spring Security** with JWT
+- **Spring Data JPA**
+- **PostgreSQL** database
+- **Maven** for dependency management
+- **Jakarta Validation**
+
+## Prerequisites
+
+- Java 17 or higher
+- Maven 3.6 or higher
+- PostgreSQL 12 or higher
+- Git
+
+## Setup Instructions
+
+### 1. Database Setup
+
+1. Create a PostgreSQL database:
+```sql
+CREATE DATABASE perfume_catalog;
+```
+
+2. Update `src/main/resources/application.properties` with your database credentials:
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/perfume_catalog
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
+
+### 2. JWT Configuration
+
+Update the JWT secret in `src/main/resources/application.properties`:
+```properties
+jwt.secret=your-very-long-and-secure-secret-key-here
+```
+
+### 3. Build and Run
+
+1. Clone the repository and navigate to the backend directory:
+```bash
+cd backend
+```
+
+2. Build the project:
+```bash
+mvn clean install
+```
+
+3. Run the application:
+```bash
+mvn spring-boot:run
+```
+
+The application will start on `http://localhost:8080`
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `GET /api/auth/validate` - Validate JWT token
+
+### Categories
+- `GET /api/categories` - Get all categories (Admin only)
+- `GET /api/categories/{id}` - Get category by ID (Admin only)
+- `POST /api/categories` - Create category (Admin only)
+- `PUT /api/categories/{id}` - Update category (Admin only)
+- `DELETE /api/categories/{id}` - Delete category (Admin only)
+- `GET /api/public/categories` - Get all categories (Public)
+
+### Brands
+- `GET /api/brands` - Get all brands (Admin only)
+- `GET /api/brands/{id}` - Get brand by ID (Admin only)
+- `GET /api/brands/category/{categoryId}` - Get brands by category (Admin only)
+- `POST /api/brands` - Create brand (Admin only)
+- `PUT /api/brands/{id}` - Update brand (Admin only)
+- `DELETE /api/brands/{id}` - Delete brand (Admin only)
+- `GET /api/public/brands` - Get all brands (Public)
+- `GET /api/public/brands/category/{categoryId}` - Get brands by category (Public)
+
+### Perfumes
+- `GET /api/perfumes` - Get all perfumes (Admin only)
+- `GET /api/perfumes/{id}` - Get perfume by ID (Admin only)
+- `GET /api/perfumes/brand/{brandId}` - Get perfumes by brand (Admin only)
+- `GET /api/perfumes/category/{categoryId}` - Get perfumes by category (Admin only)
+- `POST /api/perfumes` - Create perfume (Admin only)
+- `PUT /api/perfumes/{id}` - Update perfume (Admin only)
+- `DELETE /api/perfumes/{id}` - Delete perfume (Admin only)
+- `POST /api/perfumes/search` - Search and filter perfumes (Admin only)
+- `GET /api/public/perfumes` - Get all perfumes (Public)
+- `POST /api/public/perfumes/search` - Search and filter perfumes (Public)
+
+### Admin
+- `GET /api/admin/dashboard` - Get dashboard statistics (Admin only)
+- `POST /api/admin/users/{userId}/enable` - Enable user (Admin only)
+- `POST /api/admin/users/{userId}/disable` - Disable user (Admin only)
+- `POST /api/admin/users/{userId}/change-password` - Change user password (Admin only)
+- `POST /api/admin/users/create-admin` - Create admin user (Admin only)
+- `GET /api/admin/system/health` - System health check (Admin only)
+
+## Default Users
+
+The application comes with two default users:
+
+1. **Admin User**:
+   - Username: `admin`
+   - Password: `admin123`
+   - Roles: `ADMIN`, `USER`
+
+2. **Regular User**:
+   - Username: `user`
+   - Password: `user123`
+   - Roles: `USER`
+
+## Sample Data
+
+The application includes sample data for:
+- 3 categories (Men, Women, Unisex)
+- 9 brands (3 per category)
+- 27 perfumes (3 per brand)
+
+## Security
+
+- JWT-based authentication
+- Role-based access control (ADMIN, USER)
+- Password encryption using BCrypt
+- CORS configuration for frontend integration
+- Input validation and sanitization
+
+## Development
+
+### Running Tests
+```bash
+mvn test
+```
+
+### Code Formatting
+```bash
+mvn spring-javaformat:apply
+```
+
+### Database Schema
+The database schema is automatically generated by Hibernate based on the entity classes. Set `spring.jpa.hibernate.ddl-auto=update` in development.
+
+## Deployment
+
+1. Build the JAR file:
+```bash
+mvn clean package
+```
+
+2. Run the JAR file:
+```bash
+java -jar target/perfume-catalog-1.0.0.jar
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Error**: Ensure PostgreSQL is running and credentials are correct
+2. **Port Already in Use**: Change `server.port` in `application.properties`
+3. **JWT Token Issues**: Verify JWT secret is properly configured
+4. **CORS Issues**: Check CORS configuration for frontend integration
+
+### Logs
+
+Enable debug logging by setting:
+```properties
+logging.level.com.cataloghakim.perfume=DEBUG
+logging.level.org.springframework.security=DEBUG
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
