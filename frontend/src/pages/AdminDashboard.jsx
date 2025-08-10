@@ -1,190 +1,170 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { sampleData } from '../data/sampleData';
+import { useData } from '../contexts/DataContext';
 import AdminLayout from '../components/AdminLayout';
 import AdminStats from '../components/AdminStats';
 
 const AdminDashboard = () => {
-  // Calculate statistics from sample data
+  const { categories, resetToDefault, refreshFromAPI, loading, error } = useData();
+  
+  // Calculate statistics from data context
   const stats = {
-    categories: sampleData.categories.length,
-    brands: sampleData.categories.reduce((acc, cat) => acc + cat.brands.length, 0),
-    perfumes: sampleData.categories.reduce((acc, cat) => 
-      acc + cat.brands.reduce((brandAcc, brand) => brandAcc + brand.perfumes.length, 0), 0
-    ),
-    users: 1250 // Mock data
+    categories: categories?.length || 0,
+    brands: categories?.reduce((acc, cat) => acc + (cat.brands?.length || 0), 0) || 0,
+    perfumes: categories?.reduce((acc, cat) => 
+      acc + (cat.brands?.reduce((brandAcc, brand) => brandAcc + (brand.perfumes?.length || 0), 0) || 0), 0
+    ) || 0,
+    users: 2, // Default to 2 users (admin and regular user)
   };
-
-  const quickActions = [
-    {
-      name: 'Add New Category',
-      description: 'Create a new perfume category',
-      href: '/admin/categories',
-      icon: 'M12 6v6m0 0v6m0-6h6m-6 0H6',
-      gradient: 'from-blue-500 to-blue-600',
-      bgGradient: 'from-blue-50 to-blue-100',
-      hoverGradient: 'from-blue-600 to-blue-700'
-    },
-    {
-      name: 'Add New Brand',
-      description: 'Add a new perfume brand',
-      href: '/admin/brands',
-      icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
-      gradient: 'from-emerald-500 to-emerald-600',
-      bgGradient: 'from-emerald-50 to-emerald-100',
-      hoverGradient: 'from-emerald-600 to-emerald-700'
-    },
-    {
-      name: 'Add New Perfume',
-      description: 'Add a new perfume to existing brand',
-      href: '/admin/perfumes',
-      icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
-      gradient: 'from-purple-500 to-purple-600',
-      bgGradient: 'from-purple-50 to-purple-100',
-      hoverGradient: 'from-purple-600 to-purple-700'
-    },
-    {
-      name: 'Upload Images',
-      description: 'Manage brand and perfume images',
-      href: '/admin/images',
-      icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
-      gradient: 'from-indigo-500 to-indigo-600',
-      bgGradient: 'from-indigo-50 to-indigo-100',
-      hoverGradient: 'from-indigo-600 to-indigo-700'
-    }
-  ];
-
-  const recentActivity = [
-    {
-      id: 1,
-      message: 'Created new category',
-      target: 'Men\'s Cologne',
-      date: '2023-10-27T10:00:00Z',
-      time: '10:00 AM',
-      icon: 'M12 6v6m0 0v6m0-6h6m-6 0H6',
-      iconBg: 'bg-gradient-to-r from-blue-500 to-blue-600',
-      status: 'success'
-    },
-    {
-      id: 2,
-      message: 'Added new brand',
-      target: 'Chanel',
-      date: '2023-10-26T14:30:00Z',
-      time: '02:30 PM',
-      icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
-      iconBg: 'bg-gradient-to-r from-emerald-500 to-emerald-600',
-      status: 'success'
-    },
-    {
-      id: 3,
-      message: 'Added new perfume',
-      target: 'Eau de Parfum',
-      date: '2023-10-25T09:15:00Z',
-      time: '09:15 AM',
-      icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
-      iconBg: 'bg-gradient-to-r from-purple-500 to-purple-600',
-      status: 'success'
-    },
-    {
-      id: 4,
-      message: 'Updated image for brand',
-      target: 'Dior',
-      date: '2023-10-24T11:00:00Z',
-      time: '11:00 AM',
-      icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
-      iconBg: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
-      status: 'info'
-    }
-  ];
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">Admin Dashboard</h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Welcome to your perfume catalog administration panel. Manage categories, brands, and perfumes with ease.
-          </p>
-        </div>
-
-        {/* Statistics Cards */}
-        <AdminStats stats={stats} />
-
-        {/* Quick Actions */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20">
-          <div className="px-8 py-8">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">Quick Actions</h3>
-              <p className="text-slate-600">Get started with common administrative tasks</p>
-            </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {quickActions.map((action) => (
-                <Link
-                  key={action.name}
-                  to={action.href}
-                  className="group relative bg-white p-6 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2"
-                >
-                  <div className="text-center">
-                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r ${action.gradient} text-white shadow-lg mb-4 group-hover:shadow-xl transition-all duration-300`}>
-                      <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={action.icon} />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
-                      {action.name}
-                    </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{action.description}</p>
-                  </div>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </Link>
-              ))}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Admin Dashboard
+            </h1>
+            <p className="text-gray-600 max-w-3xl">
+              Welcome to your perfume catalog administration panel. Manage categories, brands, and perfumes with ease.
+            </p>
+            
+            {/* API Status and Refresh */}
+            <div className="mt-4 flex items-center space-x-4">
+              <button
+                onClick={refreshFromAPI}
+                disabled={loading}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Refreshing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh from Backend
+                  </>
+                )}
+              </button>
+              
+              {error && (
+                <div className="text-red-600 text-sm">
+                  Error: {error}
+                </div>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20">
-          <div className="px-8 py-8">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">Recent Activity</h3>
-              <p className="text-slate-600">Stay updated with the latest changes in your catalog</p>
+          {/* Statistics */}
+          <AdminStats stats={stats} />
+
+          {/* Quick Actions */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link
+                to="/admin/categories"
+                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-gray-900">Categories</h3>
+                    <p className="text-sm text-gray-500">Manage perfume categories</p>
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                to="/admin/brands"
+                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-gray-900">Brands</h3>
+                    <p className="text-sm text-gray-500">Manage perfume brands</p>
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                to="/admin/perfumes"
+                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-gray-900">Perfumes</h3>
+                    <p className="text-sm text-gray-500">Manage perfume items</p>
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                to="/admin/images"
+                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-gray-900">Images</h3>
+                    <p className="text-sm text-gray-500">Manage brand images</p>
+                  </div>
+                </div>
+              </Link>
             </div>
-            <div className="flow-root">
-              <ul className="-mb-8">
-                {recentActivity.map((activity, activityIdx) => (
-                  <li key={activity.id}>
-                    <div className="relative pb-8">
-                      {activityIdx !== recentActivity.length - 1 ? (
-                        <span
-                          className="absolute top-6 left-6 -ml-px h-full w-0.5 bg-gradient-to-b from-slate-200 to-transparent"
-                          aria-hidden="true"
-                        />
-                      ) : null}
-                      <div className="relative flex space-x-6">
-                        <div>
-                          <span className={`h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg ${activity.iconBg}`}>
-                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={activity.icon} />
-                            </svg>
-                          </span>
-                        </div>
-                        <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                          <div>
-                            <p className="text-sm text-slate-600">
-                              {activity.message}{' '}
-                              <span className="font-semibold text-slate-900">{activity.target}</span>
-                            </p>
-                          </div>
-                          <div className="text-right text-sm whitespace-nowrap text-slate-500">
-                            <time dateTime={activity.date} className="font-medium">{activity.time}</time>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+          </div>
+
+          {/* Data Management */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Data Management</h2>
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Reset to Default Data</h3>
+                  <p className="text-sm text-gray-500">
+                    Clear all changes and revert to the initial sample data
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to reset all data to default? This will remove all your changes.')) {
+                      resetToDefault();
+                      window.location.reload();
+                    }
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Reset to Default Data
+                </button>
+              </div>
             </div>
           </div>
         </div>

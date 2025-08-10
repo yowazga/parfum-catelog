@@ -3,17 +3,18 @@ import Header from '../components/Header';
 import CategorySection from '../components/CategorySection';
 import SearchAndFilter from '../components/SearchAndFilter';
 import SearchResults from '../components/SearchResults';
-import { sampleData, getAllPerfumes } from '../data/sampleData';
+import { useData } from '../contexts/DataContext';
 
 const Home = () => {
+  const { categories, getAllPerfumes } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ brand: '', numberRange: { min: '', max: '' } });
   const [isSearching, setIsSearching] = useState(false);
 
   // Get all brands for filter dropdown
   const allBrands = useMemo(() => {
-    return sampleData.categories.flatMap(category => category.brands);
-  }, []);
+    return categories.flatMap(category => category.brands);
+  }, [categories]);
 
   // Filter and search perfumes
   const filteredPerfumes = useMemo(() => {
@@ -45,7 +46,7 @@ const Home = () => {
     }
 
     return results;
-  }, [searchTerm, filters]);
+  }, [searchTerm, filters, getAllPerfumes]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
@@ -106,7 +107,7 @@ const Home = () => {
           ) : (
             // Show categories
             <>
-              {sampleData.categories.map(category => (
+              {categories.map(category => (
                 <CategorySection key={category.id} category={category} />
               ))}
             </>

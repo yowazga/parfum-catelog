@@ -1,15 +1,28 @@
 import React, { useState } from 'react';
-import { sampleData } from '../data/sampleData';
+import { useData } from '../contexts/DataContext';
 import AdminLayout from '../components/AdminLayout';
 
 const ImageManagement = () => {
-  const [categories, setCategories] = useState(sampleData.categories);
+  const { data, updateData } = useData();
+  const [categories, setCategories] = useState(data.categories);
   const [uploadingImage, setUploadingImage] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleImageUpload = (e, type, id) => {
     const file = e.target.files[0];
     if (file) {
+      // Check file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
       // Simulate upload progress
       setUploadingImage({ type, id, fileName: file.name });
       setUploadProgress(0);
@@ -22,18 +35,27 @@ const ImageManagement = () => {
             const imageUrl = URL.createObjectURL(file);
             
             if (type === 'brand') {
-              setCategories(prev => prev.map(cat => ({
+              const updatedCategories = categories.map(cat => ({
                 ...cat,
                 brands: cat.brands.map(brand => 
                   brand.id === id 
                     ? { ...brand, imageUrl }
                     : brand
                 )
-              })));
+              }));
+              setCategories(updatedCategories);
+              updateData({ ...data, categories: updatedCategories });
             }
             
             setUploadingImage(null);
             setUploadProgress(0);
+            
+            // Show success message
+            const brand = getAllBrandsWithImages().find(b => b.id === id);
+            if (brand) {
+              alert(`Image ${brand.imageUrl ? 'updated' : 'uploaded'} successfully for ${brand.name}!`);
+            }
+            
             return 0;
           }
           return prev + 10;
@@ -45,14 +67,16 @@ const ImageManagement = () => {
   const handleImageDelete = (type, id) => {
     if (window.confirm('Are you sure you want to delete this image?')) {
       if (type === 'brand') {
-        setCategories(prev => prev.map(cat => ({
+        const updatedCategories = categories.map(cat => ({
           ...cat,
           brands: cat.brands.map(brand => 
             brand.id === id 
               ? { ...brand, imageUrl: null }
               : brand
           )
-        })));
+        }));
+        setCategories(updatedCategories);
+        updateData({ ...data, categories: updatedCategories });
       }
     }
   };
@@ -152,8 +176,22 @@ const ImageManagement = () => {
                         className="w-full h-32 object-cover rounded-lg border border-gray-200"
                       />
                     </div>
-                    <div className="text-xs text-gray-500">
-                      <p>Image uploaded successfully</p>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-gray-500">
+                        <p>Image uploaded successfully</p>
+                      </div>
+                      <label className="cursor-pointer inline-flex items-center px-2 py-1 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Update
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'brand', brand.id)}
+                          className="hidden"
+                        />
+                      </label>
                     </div>
                   </div>
                 ))}

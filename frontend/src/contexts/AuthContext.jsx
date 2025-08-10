@@ -1,57 +1,76 @@
-import React, { useState, useEffect, createContext } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [adminUser, setAdminUser] = useState(null);
+// Custom hook for using auth context
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-  // Check if user is already logged in (from localStorage)
+export { useAuth };
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Check if user is already logged in on mount
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    const user = localStorage.getItem('adminUser');
-    
-    if (token && user) {
-      setIsAuthenticated(true);
-      setAdminUser(JSON.parse(user));
-    }
-    
-    setIsLoading(false);
+    const checkAuthStatus = async () => {
+      const storedToken = localStorage.getItem('authToken');
+      const storedUser = localStorage.getItem('adminUser');
+      
+      if (storedToken && storedUser) {
+        try {
+          // Validate token with backend
+          const isValid = await authService.validateToken();
+          if (isValid) {
+            setToken(storedToken);
+            setUser(JSON.parse(storedUser));
+          } else {
+            // Token is invalid, clear storage
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('adminUser');
+          }
+        } catch (error) {
+          console.error('Token validation failed:', error);
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('adminUser');
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuthStatus();
   }, []);
 
-  const login = async (username, password) => {
-    // For demo purposes, using hardcoded credentials
-    // In production, this would make an API call to your Spring Boot backend
-
-    if (username === 'admin' && password === 'admin123') {
-      const user = { username, role: 'admin' };
-      const token = 'demo-token-' + Date.now();
-      
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('adminUser', JSON.stringify(user));
-      
-      setIsAuthenticated(true);
-      setAdminUser(user);
-      return { success: true };
-    } else {
-      return { success: false, error: 'Invalid credentials' };
-    }
+  const login = (username, token) => {
+    setUser({ username });
+    setToken(token);
   };
 
   const logout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    setIsAuthenticated(false);
-    setAdminUser(null);
+    setUser(null);
+    setToken(null);
+    authService.logout();
+  };
+
+  const isAuthenticated = () => {
+    return !!token && !!user;
   };
 
   const value = {
-    isAuthenticated,
-    isLoading,
-    adminUser,
+    user,
+    token,
+    loading,
     login,
-    logout
+    logout,
+    isAuthenticated
   };
 
   return (
@@ -60,5 +79,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export { AuthContext };

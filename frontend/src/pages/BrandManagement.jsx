@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { useNotifications } from '../contexts/NotificationContext';
 import { exportToCSV, exportToJSON, exportToExcel } from '../utils/exportUtils';
 import { importFromCSV, importFromJSON } from '../utils/importUtils';
-import { sampleData } from '../data/sampleData';
+import { useData } from '../contexts/DataContext';
 
 const BrandManagement = () => {
+  const { brandId } = useParams();
+  const navigate = useNavigate();
+  const { data, updateData } = useData();
   const [brandsList, setBrandsList] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -28,6 +31,9 @@ const BrandManagement = () => {
   const exportMenuRef = useRef();
   const { addNotification } = useNotifications();
 
+  // If brandId is provided, show perfumes for that specific brand
+  const currentBrand = brandId ? (brandsList || []).find(brand => brand.id === brandId) : null;
+
   // Close export menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -39,10 +45,22 @@ const BrandManagement = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const getAllBrands = useCallback(() => {
+    // Extract brands from all categories and flatten them
+    const allBrands = (data.categories || []).flatMap(category => 
+      (category.brands || []).map(brand => ({
+        ...brand,
+        categoryId: category.id,
+        categoryName: category.name
+      }))
+    );
+    setBrandsList(allBrands);
+  }, [data.categories]);
+
   useEffect(() => {
     getAllBrands();
-    setCategoriesList(sampleData.categories);
-  }, []);
+    setCategoriesList(data.categories || []);
+  }, [data.categories, getAllBrands]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -81,21 +99,42 @@ const BrandManagement = () => {
           ? { 
               ...brand, 
               ...formData,
-              categoryName: categoriesList.find(cat => cat.id === formData.categoryId)?.name || 'Unknown'
+              categoryName: (categoriesList || []).find(cat => cat.id === formData.categoryId)?.name || 'Unknown'
             }
           : brand
       );
       setBrandsList(updatedBrands);
+      
+      // Update the shared context
+      const updatedCategories = data.categories.map(cat => ({
+        ...cat,
+        brands: cat.brands.map(brand => 
+          brand.id === editingBrand.id 
+            ? { ...brand, ...formData }
+            : brand
+        )
+      }));
+      updateData({ ...data, categories: updatedCategories });
+      
       addNotification('Brand updated successfully!', 'success');
     } else {
       // Add new brand
       const newBrand = {
         id: Date.now().toString(),
         ...formData,
-        categoryName: categoriesList.find(cat => cat.id === formData.categoryId)?.name || 'Unknown',
+        categoryName: (categoriesList || []).find(cat => cat.id === formData.categoryId)?.name || 'Unknown',
         perfumes: []
       };
       setBrandsList(prev => [...prev, newBrand]);
+      
+      // Update the shared context
+      const updatedCategories = data.categories.map(cat => 
+        cat.id === parseInt(formData.categoryId)
+          ? { ...cat, brands: [...cat.brands, newBrand] }
+          : cat
+      );
+      updateData({ ...data, categories: updatedCategories });
+      
       addNotification('Brand created successfully!', 'success');
     }
 
@@ -121,6 +160,14 @@ const BrandManagement = () => {
         newSet.delete(brandId);
         return newSet;
       });
+      
+      // Update the shared context
+      const updatedCategories = data.categories.map(cat => ({
+        ...cat,
+        brands: cat.brands.filter(brand => brand.id !== brandId)
+      }));
+      updateData({ ...data, categories: updatedCategories });
+      
       addNotification('Brand deleted successfully!', 'success');
     }
   };
@@ -179,7 +226,7 @@ const BrandManagement = () => {
       return;
     }
 
-    const newCategory = categoriesList.find(cat => cat.id === newCategoryId);
+    const newCategory = (categoriesList || []).find(cat => cat.id === newCategoryId);
     if (!newCategory) {
       addNotification('Invalid category selected', 'error');
       return;
@@ -202,7 +249,7 @@ const BrandManagement = () => {
         description: brand.description,
         category: brand.categoryName,
         imageUrl: brand.imageUrl,
-        perfumesCount: brand.perfumes.length
+        perfumesCount: (brand.perfumes || []).length
       }));
 
       switch (format) {
@@ -280,28 +327,93 @@ const BrandManagement = () => {
     }
   };
 
-  const getAllBrands = () => {
-    // Extract brands from all categories and flatten them
-    const allBrands = sampleData.categories.flatMap(category => 
-      category.brands.map(brand => ({
-        ...brand,
-        categoryId: category.id,
-        categoryName: category.name
-      }))
-    );
-    setBrandsList(allBrands);
-  };
+
 
   const getFilteredBrands = () => {
-    return brandsList.filter(brand => {
-      const matchesSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           brand.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return (brandsList || []).filter(brand => {
+      const matchesSearch = (brand.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (brand.description || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = !selectedCategory || brand.categoryId === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   };
 
   const filteredBrands = getFilteredBrands();
+
+  // If we're viewing a specific brand's perfumes, show that view
+  if (currentBrand) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => navigate('/admin/brands')}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Perfumes in {currentBrand.name}</h1>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Manage perfumes within the {currentBrand.name} brand.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <Link
+              to="/admin/perfumes"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              View All Perfumes
+            </Link>
+          </div>
+
+          {/* Perfumes List */}
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                Perfumes in {currentBrand.name} ({(currentBrand.perfumes || []).length})
+              </h3>
+              {(currentBrand.perfumes || []).length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No perfumes in this brand</h3>
+                  <p className="mt-1 text-sm text-gray-500">Add some perfumes to get started.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {(currentBrand.perfumes || []).map((perfume) => (
+                    <div key={perfume.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-lg font-medium text-gray-900">{perfume.name}</h4>
+                          <p className="text-sm text-gray-600 mb-3">{perfume.description}</p>
+                          <div className="flex space-x-4 text-sm text-gray-500">
+                            <span>${perfume.price}</span>
+                            <span>{perfume.size}ml</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -354,7 +466,7 @@ const BrandManagement = () => {
                     required
                   >
                     <option value="">Select a category</option>
-                    {categoriesList.map(category => (
+                    {(categoriesList || []).map(category => (
                       <option key={category.id} value={category.id}>
                         {category.name}
                       </option>
@@ -504,7 +616,7 @@ const BrandManagement = () => {
                       className="px-3 py-2 rounded-lg border border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm text-sm"
                     >
                       <option value="">Move to category...</option>
-                      {categoriesList.map(category => (
+                      {(categoriesList || []).map(category => (
                         <option key={category.id} value={category.id}>
                           {category.name}
                         </option>
@@ -675,7 +787,7 @@ const BrandManagement = () => {
                               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                               </svg>
-                              {brand.perfumes.length} perfumes
+                              {(brand.perfumes || []).length} perfumes
                             </span>
                           </div>
                         </div>

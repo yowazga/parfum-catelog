@@ -68,7 +68,7 @@ const AdminStats = ({ stats }) => {
             <div className="space-y-2">
               <p className="text-sm font-medium text-slate-600">{item.name}</p>
               <div className="flex items-baseline space-x-2">
-                <p className="text-3xl font-bold text-slate-900">{item.value.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-slate-900">{(item.value || 0).toLocaleString()}</p>
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
                   item.changeType === 'increase' 
                     ? 'bg-emerald-100 text-emerald-800' 
