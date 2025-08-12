@@ -147,6 +147,13 @@ backend/uploads/
 backend/images/
 backend/files/
 
+# Test and temporary images
+backend/test*.png
+backend/test*.jpg
+backend/test*.jpeg
+backend/test*.gif
+backend/test*.svg
+
 # ===========================================
 # IDE & EDITOR
 # ===========================================
