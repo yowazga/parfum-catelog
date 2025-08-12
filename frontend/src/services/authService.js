@@ -35,5 +35,10 @@ export const authService = {
   logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('adminUser');
+  },
+
+  // Get current auth token
+  getToken() {
+    return localStorage.getItem('authToken');
   }
 };

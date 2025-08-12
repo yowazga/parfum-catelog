@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
@@ -10,8 +10,15 @@ const AdminLogin = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect to admin dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/admin', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -29,14 +36,7 @@ const AdminLogin = () => {
       // Call the real authentication service
       const response = await authService.login(formData.username, formData.password);
       
-      // Store the JWT token
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('adminUser', JSON.stringify({
-        username: response.username,
-        email: response.email
-      }));
-
-      // Update auth context
+      // Update auth context (this will handle localStorage storage)
       login(response.username, response.token);
       
       // Navigate to admin dashboard

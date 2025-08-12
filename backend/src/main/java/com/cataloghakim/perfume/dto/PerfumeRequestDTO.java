@@ -3,7 +3,6 @@ package com.cataloghakim.perfume.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.Min;
 
 public class PerfumeRequestDTO {
     
@@ -11,9 +10,9 @@ public class PerfumeRequestDTO {
     @Size(min = 2, max = 100, message = "Perfume name must be between 2 and 100 characters")
     private String name;
     
-    @NotNull(message = "Perfume number is required")
-    @Min(value = 1, message = "Perfume number must be at least 1")
-    private Integer number;
+    @NotBlank(message = "Perfume number is required")
+    @Size(min = 1, max = 20, message = "Perfume number must be between 1 and 20 characters")
+    private String number;
     
     @NotNull(message = "Brand ID is required")
     private Long brandId;
@@ -21,7 +20,7 @@ public class PerfumeRequestDTO {
     // Constructors
     public PerfumeRequestDTO() {}
     
-    public PerfumeRequestDTO(String name, Integer number, Long brandId) {
+    public PerfumeRequestDTO(String name, String number, Long brandId) {
         this.name = name;
         this.number = number;
         this.brandId = brandId;
@@ -36,11 +35,11 @@ public class PerfumeRequestDTO {
         this.name = name;
     }
     
-    public Integer getNumber() {
+    public String getNumber() {
         return number;
     }
     
-    public void setNumber(Integer number) {
+    public void setNumber(String number) {
         this.number = number;
     }
     

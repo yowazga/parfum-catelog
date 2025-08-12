@@ -13,33 +13,32 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/brands")
 @CrossOrigin(origins = "*")
 public class BrandController {
     
     @Autowired
     private BrandService brandService;
     
-    @GetMapping
+    @GetMapping("/brands")
     public ResponseEntity<List<BrandDTO>> getAllBrands() {
         List<BrandDTO> brands = brandService.getAllBrands();
         return ResponseEntity.ok(brands);
     }
     
-    @GetMapping("/{id}")
+    @GetMapping("/brands/{id}")
     public ResponseEntity<BrandDTO> getBrandById(@PathVariable Long id) {
         Optional<BrandDTO> brand = brandService.getBrandById(id);
         return brand.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    @GetMapping("/category/{categoryId}")
+    @GetMapping("/brands/category/{categoryId}")
     public ResponseEntity<List<BrandDTO>> getBrandsByCategory(@PathVariable Long categoryId) {
         List<BrandDTO> brands = brandService.getBrandsByCategory(categoryId);
         return ResponseEntity.ok(brands);
     }
     
-    @PostMapping
+    @PostMapping("/brands")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BrandDTO> createBrand(@Valid @RequestBody BrandRequestDTO brandRequest) {
         try {
@@ -50,7 +49,7 @@ public class BrandController {
         }
     }
     
-    @PutMapping("/{id}")
+    @PutMapping("/brands/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BrandDTO> updateBrand(@PathVariable Long id, @Valid @RequestBody BrandRequestDTO brandRequest) {
         Optional<BrandDTO> updatedBrand = brandService.updateBrand(id, brandRequest);
@@ -58,7 +57,7 @@ public class BrandController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/brands/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteBrand(@PathVariable Long id) {
         try {
@@ -73,15 +72,13 @@ public class BrandController {
         }
     }
     
-    @GetMapping("/public")
-    @RequestMapping("/api/public/brands")
+    @GetMapping("/public/brands")
     public ResponseEntity<List<BrandDTO>> getPublicBrands() {
         List<BrandDTO> brands = brandService.getAllBrands();
         return ResponseEntity.ok(brands);
     }
     
-    @GetMapping("/public/category/{categoryId}")
-    @RequestMapping("/api/public/brands/category/{categoryId}")
+    @GetMapping("/public/brands/category/{categoryId}")
     public ResponseEntity<List<BrandDTO>> getPublicBrandsByCategory(@PathVariable Long categoryId) {
         List<BrandDTO> brands = brandService.getBrandsByCategory(categoryId);
         return ResponseEntity.ok(brands);

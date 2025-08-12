@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 const SearchAndFilter = ({ onSearch, onFilter, brands, totalPerfumes }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('');
-  const [numberRange, setNumberRange] = useState({ min: '', max: '' });
   const [showFilters, setShowFilters] = useState(false);
 
   // Get unique brand names from all categories
@@ -20,15 +19,13 @@ const SearchAndFilter = ({ onSearch, onFilter, brands, totalPerfumes }) => {
 
   const handleFilterChange = () => {
     onFilter({
-      brand: selectedBrand,
-      numberRange: numberRange
+      brand: selectedBrand
     });
   };
 
   const clearFilters = () => {
     setSelectedBrand('');
-    setNumberRange({ min: '', max: '' });
-    onFilter({ brand: '', numberRange: { min: '', max: '' } });
+    onFilter({ brand: '' });
   };
 
   return (
@@ -45,7 +42,7 @@ const SearchAndFilter = ({ onSearch, onFilter, brands, totalPerfumes }) => {
               </div>
               <input
                 type="text"
-                placeholder="Search perfumes by name, brand, or number..."
+                placeholder="Search perfumes by name or brand..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -67,7 +64,7 @@ const SearchAndFilter = ({ onSearch, onFilter, brands, totalPerfumes }) => {
         {/* Filters Panel */}
         {showFilters && (
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Brand Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -86,36 +83,6 @@ const SearchAndFilter = ({ onSearch, onFilter, brands, totalPerfumes }) => {
                     <option key={brand} value={brand}>{brand}</option>
                   ))}
                 </select>
-              </div>
-
-              {/* Number Range Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Number Range
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={numberRange.min}
-                    onChange={(e) => {
-                      setNumberRange(prev => ({ ...prev, min: e.target.value }));
-                      handleFilterChange();
-                    }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <span className="flex items-center text-gray-500">to</span>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={numberRange.max}
-                    onChange={(e) => {
-                      setNumberRange(prev => ({ ...prev, max: e.target.value }));
-                      handleFilterChange();
-                    }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
               </div>
 
               {/* Clear Filters */}

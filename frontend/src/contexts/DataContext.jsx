@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { sampleData as initialData } from '../data/sampleData';
-import { categoryService } from '../services/categoryService';
-import { brandService } from '../services/brandService';
-import { perfumeService } from '../services/perfumeService';
+import { publicDataService } from '../services/publicDataService';
+
+const initialData = {
+  categories: []
+};
 
 const DataContext = createContext();
 
@@ -24,18 +25,13 @@ export const DataProvider = ({ children }) => {
   const fetchDataFromAPI = useCallback(async () => {
     setLoading(true);
     setError(null);
-    console.log('🔄 Starting API fetch...');
     
     try {
-      console.log('📡 Fetching data from APIs...');
-      
       const [categories, brands, perfumes] = await Promise.all([
-        categoryService.getAllCategories(),
-        brandService.getAllBrands(),
-        perfumeService.getAllPerfumes()
+        publicDataService.getPublicCategories(),
+        publicDataService.getPublicBrands(),
+        publicDataService.getPublicPerfumes()
       ]);
-
-      console.log('📊 Raw API data:', { categories, brands, perfumes });
 
       const organizedCategories = categories.map(category => ({
         ...category,
@@ -50,13 +46,11 @@ export const DataProvider = ({ children }) => {
       const newData = { categories: organizedCategories };
       setData(newData);
       localStorage.setItem('perfumeCatalogData', JSON.stringify(newData));
-      console.log('✅ Data organized and saved:', newData);
     } catch (error) {
-      console.error('❌ API fetch failed:', error);
+      console.error('API fetch failed:', error);
       setError(error.message);
     } finally {
       setLoading(false);
-      console.log('🏁 API fetch completed');
     }
   }, []);
 
@@ -64,12 +58,24 @@ export const DataProvider = ({ children }) => {
     const savedData = localStorage.getItem('perfumeCatalogData');
     if (savedData) {
       try {
-        setData(JSON.parse(savedData));
+        const parsedData = JSON.parse(savedData);
+        // Check if we have valid data
+        if (parsedData && parsedData.categories && parsedData.categories.length > 0) {
+          setData(parsedData);
+        } else {
+          // No valid saved data, fetch from API
+          fetchDataFromAPI();
+        }
       } catch (error) {
         console.error('Error loading saved data:', error);
+        // If there's an error parsing saved data, fetch fresh data
+        fetchDataFromAPI();
       }
+    } else {
+      // No saved data, fetch from API
+      fetchDataFromAPI();
     }
-  }, []);
+  }, [fetchDataFromAPI]);
 
   useEffect(() => {
     localStorage.setItem('perfumeCatalogData', JSON.stringify(data));
@@ -125,23 +131,13 @@ export const DataProvider = ({ children }) => {
     setData(newData);
   };
 
-  const resetToDefault = () => {
-    setData(initialData);
-    localStorage.removeItem('perfumeCatalogData');
-  };
-
-  const refreshFromAPI = () => {
-    fetchDataFromAPI();
-  };
-
   const value = {
     data,
     categories: data.categories,
     loading,
     error,
     updateData,
-    resetToDefault,
-    refreshFromAPI,
+    fetchDataFromAPI,
     getCategoryById,
     getBrandById,
     getAllPerfumes,

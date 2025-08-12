@@ -1,98 +1,110 @@
 import React, { useState } from 'react';
 import { useData } from '../contexts/DataContext';
+import { useNotifications } from '../contexts/NotificationContext';
+import { brandService } from '../services/brandService';
+import { fileUploadService } from '../services/fileUploadService';
 import AdminLayout from '../components/AdminLayout';
 
 const ImageManagement = () => {
-  const { data, updateData } = useData();
-  const [categories, setCategories] = useState(data.categories);
-  const [uploadingImage, setUploadingImage] = useState(null);
+  const { categories, getAllBrands, fetchDataFromAPI } = useData();
+  const { addNotification } = useNotifications();
+  const [editingImageUrl, setEditingImageUrl] = useState('');
+  const [editingBrandId, setEditingBrandId] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUploadMethod, setImageUploadMethod] = useState('upload');
+  const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleImageUpload = (e, type, id) => {
+  // Handle file selection
+  const handleFileSelect = (e, brandId) => {
     const file = e.target.files[0];
     if (file) {
-      // Check file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
-        return;
+      try {
+        fileUploadService.validateFile(file);
+        setImageFile(file);
+        uploadAndUpdateBrand(file, brandId);
+      } catch (error) {
+        addNotification('File Error', error.message, { type: 'error' });
+        e.target.value = ''; // Clear the input
       }
+    }
+  };
 
-      // Check file type
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-      }
-
-      // Simulate upload progress
-      setUploadingImage({ type, id, fileName: file.name });
-      setUploadProgress(0);
+  // Upload file and update brand
+  const uploadAndUpdateBrand = async (file, brandId) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      addNotification('Upload Status', 'Uploading image...', { type: 'info' });
+      const result = await fileUploadService.uploadFile(file);
+      setUploadProgress(100);
       
-      const interval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            // Simulate successful upload
-            const imageUrl = URL.createObjectURL(file);
-            
-            if (type === 'brand') {
-              const updatedCategories = categories.map(cat => ({
-                ...cat,
-                brands: cat.brands.map(brand => 
-                  brand.id === id 
-                    ? { ...brand, imageUrl }
-                    : brand
-                )
-              }));
-              setCategories(updatedCategories);
-              updateData({ ...data, categories: updatedCategories });
-            }
-            
-            setUploadingImage(null);
-            setUploadProgress(0);
-            
-            // Show success message
-            const brand = getAllBrandsWithImages().find(b => b.id === id);
-            if (brand) {
-              alert(`Image ${brand.imageUrl ? 'updated' : 'uploaded'} successfully for ${brand.name}!`);
-            }
-            
-            return 0;
-          }
-          return prev + 10;
-        });
-      }, 100);
+      // Update the brand with the new image filename (not URL)
+      await handleImageUpdate(brandId, result.filename);
+      addNotification('Upload Success', 'Image uploaded and updated successfully!', { type: 'success' });
+    } catch (error) {
+      addNotification('Upload Error', error.message, { type: 'error' });
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      setImageFile(null);
     }
   };
 
-  const handleImageDelete = (type, id) => {
-    if (window.confirm('Are you sure you want to delete this image?')) {
-      if (type === 'brand') {
-        const updatedCategories = categories.map(cat => ({
-          ...cat,
-          brands: cat.brands.map(brand => 
-            brand.id === id 
-              ? { ...brand, imageUrl: null }
-              : brand
-          )
-        }));
-        setCategories(updatedCategories);
-        updateData({ ...data, categories: updatedCategories });
-      }
+  const handleImageUpdate = async (brandId, newImageUrl) => {
+    try {
+      // Update via API
+      const brand = getAllBrands().find(b => b.id === brandId);
+      if (!brand) return;
+
+      const brandData = {
+        name: brand.name,
+        description: brand.description,
+        categoryId: brand.categoryId,
+        imageUrl: newImageUrl || null
+      };
+
+      await brandService.updateBrand(brandId, brandData);
+      
+      // Refresh data
+      await fetchDataFromAPI();
+      
+      // Reset editing state
+      setEditingBrandId(null);
+      setEditingImageUrl('');
+      
+      addNotification(
+        'Update Success',
+        newImageUrl ? 'Image updated successfully!' : 'Image removed successfully!', 
+        { type: 'success' }
+      );
+    } catch (error) {
+      addNotification('Update Error', error.message || 'Failed to update image', { type: 'error' });
     }
   };
 
-  const getAllBrandsWithImages = () => {
-    return categories.reduce((acc, category) => {
-      const brandsWithContext = category.brands.map(brand => ({
-        ...brand,
-        categoryName: category.name,
-        categoryId: category.id
-      }));
-      return [...acc, ...brandsWithContext];
-    }, []);
+  const isValidImageUrl = (url) => {
+    if (!url) return true; // Empty is valid
+    try {
+      const urlObj = new URL(url);
+      return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(urlObj.pathname) || 
+             url.includes('unsplash.com') || 
+             url.includes('pexels.com') ||
+             url.includes('pixabay.com') ||
+             url.includes('githubusercontent.com');
+    } catch {
+      return false;
+    }
   };
 
-  const brands = getAllBrandsWithImages();
+  const handleImageDelete = async (brandId) => {
+    if (window.confirm('Are you sure you want to remove this image?')) {
+      await handleImageUpdate(brandId, null);
+    }
+  };
+
+  const brands = getAllBrands();
   const brandsWithImages = brands.filter(brand => brand.imageUrl);
   const brandsWithoutImages = brands.filter(brand => !brand.imageUrl);
 
@@ -107,34 +119,22 @@ const ImageManagement = () => {
           </p>
         </div>
 
-        {/* Upload Progress */}
-        {uploadingImage && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center space-x-4">
-              <div className="flex-shrink-0">
-                <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">
-                  Uploading {uploadingImage.fileName}...
-                </div>
-                <div className="mt-2">
-                  <div className="bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="text-sm text-gray-500">
-                {uploadProgress}%
+        {/* Image Management Info */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">Image Management</h3>
+              <div className="mt-2 text-sm text-blue-700">
+                <p>Manage brand images by adding or updating image URLs. Use high-quality images from Unsplash, Pexels, or direct URLs to JPG, PNG, GIF, WebP, or SVG files.</p>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Brands with Images */}
         <div className="bg-white shadow rounded-lg">
@@ -160,7 +160,7 @@ const ImageManagement = () => {
                         <p className="text-sm text-gray-500">{brand.categoryName}</p>
                       </div>
                       <button
-                        onClick={() => handleImageDelete('brand', brand.id)}
+                        onClick={() => handleImageDelete(brand.id)}
                         className="p-1 text-red-400 hover:text-red-600 transition-colors"
                         title="Delete image"
                       >
@@ -171,7 +171,7 @@ const ImageManagement = () => {
                     </div>
                     <div className="aspect-w-1 aspect-h-1 mb-3">
                       <img
-                        src={brand.imageUrl}
+                        src={fileUploadService.getFileUrl(brand.imageUrl)}
                         alt={`${brand.name} logo`}
                         className="w-full h-32 object-cover rounded-lg border border-gray-200"
                       />
@@ -180,16 +180,17 @@ const ImageManagement = () => {
                       <div className="text-xs text-gray-500">
                         <p>Image uploaded successfully</p>
                       </div>
-                      <label className="cursor-pointer inline-flex items-center px-2 py-1 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      <label className="cursor-pointer inline-flex items-center px-2 py-1 border border-blue-300 rounded text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
-                        Update
+                        📁 Upload New
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => handleImageUpload(e, 'brand', brand.id)}
+                          onChange={(e) => handleFileSelect(e, brand.id)}
                           className="hidden"
+                          disabled={isUploading}
                         />
                       </label>
                     </div>
@@ -232,16 +233,17 @@ const ImageManagement = () => {
                         <p>{brand.description}</p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <label className="cursor-pointer inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <label className="cursor-pointer inline-flex items-center px-3 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                           <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                           </svg>
-                          Upload Image
+                          📁 Upload Image
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => handleImageUpload(e, 'brand', brand.id)}
+                            onChange={(e) => handleFileSelect(e, brand.id)}
                             className="hidden"
+                            disabled={isUploading}
                           />
                         </label>
                       </div>
@@ -275,6 +277,22 @@ const ImageManagement = () => {
             </div>
           </div>
         </div>
+        
+        {/* Upload Progress */}
+        {isUploading && (
+          <div className="fixed bottom-4 right-4 bg-blue-100 rounded-lg p-4 shadow-lg border border-blue-200">
+            <div className="flex items-center justify-between text-sm text-blue-800 mb-2">
+              <span>Uploading image...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="w-64 bg-blue-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

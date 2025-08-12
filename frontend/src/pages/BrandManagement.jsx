@@ -5,11 +5,13 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { exportToCSV, exportToJSON, exportToExcel } from '../utils/exportUtils';
 import { importFromCSV, importFromJSON } from '../utils/importUtils';
 import { useData } from '../contexts/DataContext';
+import { brandService } from '../services/brandService';
+import { fileUploadService } from '../services/fileUploadService';
 
 const BrandManagement = () => {
   const { brandId } = useParams();
   const navigate = useNavigate();
-  const { data, updateData } = useData();
+  const { data, updateData, fetchDataFromAPI } = useData();
   const [brandsList, setBrandsList] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -20,6 +22,10 @@ const BrandManagement = () => {
     categoryId: '',
     imageUrl: ''
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUploadMethod, setImageUploadMethod] = useState('upload'); // 'upload' or 'url'
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedBrands, setSelectedBrands] = useState(new Set());
@@ -70,72 +76,149 @@ const BrandManagement = () => {
     }));
   };
 
-  const handleImageUpload = (e) => {
+  // Handle image upload method change
+  const handleImageMethodChange = (method) => {
+    setImageUploadMethod(method);
+    setImageFile(null);
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
+  };
+
+  // Handle file selection
+  const handleFileSelect = (e) => {
     const file = e.target.files[0];
+    
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData(prev => ({
-          ...prev,
-          imageUrl: e.target.result
-        }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        fileUploadService.validateFile(file);
+        setImageFile(file);
+        
+        // Create preview URL
+        const previewUrl = URL.createObjectURL(file);
+        setFormData(prev => ({ ...prev, imageUrl: previewUrl }));
+        
+        addNotification('File Selected', `File "${file.name}" selected successfully!`, { type: 'success' });
+      } catch (error) {
+        addNotification('File Error', error.message, { type: 'error' });
+        e.target.value = ''; // Clear the input
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  // Handle URL input
+  const handleImageUrlChange = (e) => {
+    const url = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      imageUrl: url
+    }));
+  };
+
+  // Validate image URL
+  const isValidImageUrl = (url) => {
+    if (!url) return true; // Empty is valid
+    try {
+      const urlObj = new URL(url);
+      return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(urlObj.pathname) || 
+             url.includes('unsplash.com') || 
+             url.includes('pexels.com') ||
+             url.includes('pixabay.com') ||
+             url.includes('githubusercontent.com');
+    } catch {
+      return false;
+    }
+  };
+
+  // Upload file and get URL
+  const uploadImageFile = async () => {
+    if (!imageFile) return null;
+    
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      addNotification('Upload Status', 'Uploading image...', { type: 'info' });
+      const result = await fileUploadService.uploadFile(imageFile);
+      setUploadProgress(100);
+      addNotification('Upload Success', 'Image uploaded successfully!', { type: 'success' });
+      // Store only the filename in the database, not the full path
+      return result.filename; // Return just the filename for storage
+    } catch (error) {
+      addNotification('Upload Error', error.message, { type: 'error' });
+      throw error;
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
+
+    
     if (!formData.name || !formData.description || !formData.categoryId) {
-      addNotification('Please fill in all required fields', 'error');
+      addNotification('Validation Error', 'Please fill in all required fields', { type: 'error' });
       return;
     }
 
-    if (editingBrand) {
-      // Update existing brand
-      const updatedBrands = brandsList.map(brand => 
-        brand.id === editingBrand.id 
-          ? { 
-              ...brand, 
-              ...formData,
-              categoryName: (categoriesList || []).find(cat => cat.id === formData.categoryId)?.name || 'Unknown'
-            }
-          : brand
-      );
-      setBrandsList(updatedBrands);
-      
-      // Update the shared context
-      const updatedCategories = data.categories.map(cat => ({
-        ...cat,
-        brands: cat.brands.map(brand => 
-          brand.id === editingBrand.id 
-            ? { ...brand, ...formData }
-            : brand
-        )
-      }));
-      updateData({ ...data, categories: updatedCategories });
-      
-      addNotification('Brand updated successfully!', 'success');
-    } else {
-      // Add new brand
-      const newBrand = {
-        id: Date.now().toString(),
+    // Validate based on upload method
+    if (imageUploadMethod === 'url' && formData.imageUrl && !isValidImageUrl(formData.imageUrl)) {
+      addNotification('URL Error', 'Please enter a valid image URL', { type: 'error' });
+      return;
+    }
+
+    let finalImageUrl = formData.imageUrl;
+
+    // Handle file upload if a file is selected
+    if (imageUploadMethod === 'upload' && imageFile) {
+      try {
+        finalImageUrl = await uploadImageFile();
+      } catch (error) {
+        return; // Error already handled in uploadImageFile
+      }
+    }
+
+    try {
+      const brandData = {
         ...formData,
-        categoryName: (categoriesList || []).find(cat => cat.id === formData.categoryId)?.name || 'Unknown',
-        perfumes: []
+        imageUrl: finalImageUrl
       };
-      setBrandsList(prev => [...prev, newBrand]);
       
-      // Update the shared context
-      const updatedCategories = data.categories.map(cat => 
-        cat.id === parseInt(formData.categoryId)
-          ? { ...cat, brands: [...cat.brands, newBrand] }
-          : cat
-      );
-      updateData({ ...data, categories: updatedCategories });
+      if (editingBrand) {
+        // Update existing brand via API
+        const updatedBrand = await brandService.updateBrand(editingBrand.id, brandData);
+        
+        // Update local state
+        const updatedBrands = brandsList.map(brand => 
+          brand.id === editingBrand.id 
+            ? { 
+                ...updatedBrand,
+                categoryName: (categoriesList || []).find(cat => cat.id === updatedBrand.categoryId)?.name || 'Unknown'
+              }
+            : brand
+        );
+        setBrandsList(updatedBrands);
+        
+        addNotification('Brand Updated', 'Brand updated successfully!', { type: 'success' });
+      } else {
+        // Create new brand via API
+        const newBrand = await brandService.createBrand(brandData);
+        
+        // Add to local state
+        const brandWithCategoryName = {
+          ...newBrand,
+          categoryName: (categoriesList || []).find(cat => cat.id === newBrand.categoryId)?.name || 'Unknown'
+        };
+        setBrandsList(prev => [...prev, brandWithCategoryName]);
+        
+        addNotification('Brand Created', 'Brand created successfully!', { type: 'success' });
+      }
+
+      // Refresh data from API to ensure consistency
+      await fetchDataFromAPI();
       
-      addNotification('Brand created successfully!', 'success');
+    } catch (error) {
+      addNotification('Save Error', error.message || 'Failed to save brand', { type: 'error' });
     }
 
     handleCloseForm();
@@ -149,26 +232,35 @@ const BrandManagement = () => {
       categoryId: brand.categoryId,
       imageUrl: brand.imageUrl || ''
     });
+    // Reset file upload states when editing
+    setImageFile(null);
+    setImageUploadMethod(brand.imageUrl ? 'url' : 'upload');
+    setUploadProgress(0);
+    setIsUploading(false);
     setShowAddForm(true);
   };
 
-  const handleDelete = (brandId) => {
+  const handleDelete = async (brandId) => {
     if (window.confirm('Are you sure you want to delete this brand?')) {
-      setBrandsList(prev => prev.filter(brand => brand.id !== brandId));
-      setSelectedBrands(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(brandId);
-        return newSet;
-      });
-      
-      // Update the shared context
-      const updatedCategories = data.categories.map(cat => ({
-        ...cat,
-        brands: cat.brands.filter(brand => brand.id !== brandId)
-      }));
-      updateData({ ...data, categories: updatedCategories });
-      
-      addNotification('Brand deleted successfully!', 'success');
+      try {
+        // Delete via API
+        await brandService.deleteBrand(brandId);
+        
+        // Update local state
+        setBrandsList(prev => prev.filter(brand => brand.id !== brandId));
+        setSelectedBrands(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(brandId);
+          return newSet;
+        });
+        
+        // Refresh data from API to ensure consistency
+        await fetchDataFromAPI();
+        
+        addNotification('Brand Deleted', 'Brand deleted successfully!', { type: 'success' });
+      } catch (error) {
+        addNotification('Delete Error', error.message || 'Failed to delete brand', { type: 'error' });
+      }
     }
   };
 
@@ -185,6 +277,10 @@ const BrandManagement = () => {
       categoryId: '',
       imageUrl: ''
     });
+    setImageFile(null);
+    setImageUploadMethod('upload');
+    setUploadProgress(0);
+    setIsUploading(false);
   };
 
   const handleBulkSelect = (brandId) => {
@@ -207,28 +303,43 @@ const BrandManagement = () => {
     }
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     if (selectedBrands.size === 0) {
-      addNotification('Please select brands to delete', 'warning');
+              addNotification('Selection Required', 'Please select brands to delete', { type: 'warning' });
       return;
     }
 
     if (window.confirm(`Are you sure you want to delete ${selectedBrands.size} brands?`)) {
-      setBrandsList(prev => prev.filter(brand => !selectedBrands.has(brand.id)));
-      setSelectedBrands(new Set());
-      addNotification(`${selectedBrands.size} brands deleted successfully!`, 'success');
+      try {
+        // Delete all selected brands via API
+        const deletePromises = Array.from(selectedBrands).map(brandId => 
+          brandService.deleteBrand(brandId)
+        );
+        await Promise.all(deletePromises);
+        
+        // Update local state
+        setBrandsList(prev => prev.filter(brand => !selectedBrands.has(brand.id)));
+        setSelectedBrands(new Set());
+        
+        // Refresh data from API to ensure consistency
+        await fetchDataFromAPI();
+        
+        addNotification('Bulk Delete Success', `${selectedBrands.size} brands deleted successfully!`, { type: 'success' });
+      } catch (error) {
+        addNotification('Bulk Delete Error', error.message || 'Failed to delete some brands', { type: 'error' });
+      }
     }
   };
 
   const handleBulkMove = (newCategoryId) => {
     if (selectedBrands.size === 0) {
-      addNotification('Please select brands to move', 'warning');
+              addNotification('Selection Required', 'Please select brands to move', { type: 'warning' });
       return;
     }
 
     const newCategory = (categoriesList || []).find(cat => cat.id === newCategoryId);
     if (!newCategory) {
-      addNotification('Invalid category selected', 'error');
+              addNotification('Category Error', 'Invalid category selected', { type: 'error' });
       return;
     }
 
@@ -238,7 +349,7 @@ const BrandManagement = () => {
         : brand
     ));
     setSelectedBrands(new Set());
-    addNotification(`${selectedBrands.size} brands moved to ${newCategory.name}!`, 'success');
+            addNotification('Move Success', `${selectedBrands.size} brands moved to ${newCategory.name}!`, { type: 'success' });
   };
 
   const handleExport = (format) => {
@@ -263,14 +374,14 @@ const BrandManagement = () => {
           exportToExcel(data, 'brands');
           break;
         default:
-          addNotification('Invalid export format', 'error');
+          addNotification('Export Error', 'Invalid export format', { type: 'error' });
           return;
       }
 
-      addNotification(`Brands exported to ${format.toUpperCase()} successfully!`, 'success');
+              addNotification('Export Success', `Brands exported to ${format.toUpperCase()} successfully!`, { type: 'success' });
       setShowExportMenu(false);
     } catch (error) {
-      addNotification('Export failed: ' + error.message, 'error');
+              addNotification('Export Error', 'Export failed: ' + error.message, { type: 'error' });
     }
   };
 
@@ -285,13 +396,13 @@ const BrandManagement = () => {
       } else if (file.name.endsWith('.json')) {
         importedData = await importFromJSON(file);
       } else {
-        addNotification('Unsupported file format. Please use CSV or JSON.', 'error');
+        addNotification('File Format Error', 'Unsupported file format. Please use CSV or JSON.', { type: 'error' });
         return;
       }
 
       setImportPreview(importedData);
     } catch (error) {
-      addNotification('Import failed: ' + error.message, 'error');
+      addNotification('Import Error', 'Import failed: ' + error.message, { type: 'error' });
     }
   };
 
@@ -314,9 +425,9 @@ const BrandManagement = () => {
       setImportFile(null);
       setImportPreview(null);
       setImportErrors([]);
-      addNotification(`${newBrands.length} brands imported successfully!`, 'success');
+      addNotification('Import Success', `${newBrands.length} brands imported successfully!`, { type: 'success' });
     } catch (error) {
-      addNotification('Import failed: ' + error.message, 'error');
+      addNotification('Import Error', 'Import failed: ' + error.message, { type: 'error' });
     }
   };
 
@@ -339,6 +450,8 @@ const BrandManagement = () => {
   };
 
   const filteredBrands = getFilteredBrands();
+
+
 
   // If we're viewing a specific brand's perfumes, show that view
   if (currentBrand) {
@@ -491,21 +604,111 @@ const BrandManagement = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-3">
                   Brand Image
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
-                />
+                
+                {/* Upload Method Selection */}
+                <div className="flex mb-4 p-1 bg-slate-100 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => handleImageMethodChange('upload')}
+                    className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                      imageUploadMethod === 'upload'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    📁 Upload File
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleImageMethodChange('url')}
+                    className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                      imageUploadMethod === 'url'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    🔗 Use URL
+                  </button>
+                </div>
+
+                {/* File Upload */}
+                {imageUploadMethod === 'upload' && (
+                  <div>
+                    <div className="border-2 border-dashed border-blue-300 rounded-xl p-6 text-center bg-blue-50">
+                      <div className="text-blue-600 mb-3">
+                        📁 <span className="text-lg font-medium">Select Image File</span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 cursor-pointer"
+                      />
+                      {imageFile && (
+                        <div className="mt-3 text-green-600 font-medium">
+                          ✅ Selected: {imageFile.name}
+                        </div>
+                      )}
+                    </div>
+                    <p className="mt-2 text-xs text-slate-500">
+                      Select an image file (JPEG, PNG, GIF, WebP). Max size: 10MB
+                    </p>
+                    
+                    {isUploading && (
+                      <div className="mt-3">
+                        <div className="bg-blue-100 rounded-lg p-3">
+                          <div className="flex items-center justify-between text-sm text-blue-800 mb-2">
+                            <span>Uploading...</span>
+                            <span>{uploadProgress}%</span>
+                          </div>
+                          <div className="w-full bg-blue-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* URL Input */}
+                {imageUploadMethod === 'url' && (
+                  <div>
+                    <input
+                      type="url"
+                      name="imageUrl"
+                      value={formData.imageUrl}
+                      onChange={handleImageUrlChange}
+                      placeholder="https://example.com/image.jpg"
+                      className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm ${
+                        formData.imageUrl && !isValidImageUrl(formData.imageUrl) 
+                          ? 'border-red-300 bg-red-50' 
+                          : 'border-slate-300'
+                      }`}
+                    />
+                    {formData.imageUrl && !isValidImageUrl(formData.imageUrl) && (
+                      <p className="mt-1 text-sm text-red-600">Please enter a valid image URL</p>
+                    )}
+                    <p className="mt-1 text-xs text-slate-500">
+                      Enter a direct link to an image or use free images from Unsplash, Pexels, etc.
+                    </p>
+                  </div>
+                )}
+
+                {/* Image Preview */}
                 {formData.imageUrl && (
                   <div className="mt-3">
                     <img 
                       src={formData.imageUrl} 
                       alt="Preview" 
                       className="w-32 h-32 object-cover rounded-xl border border-slate-200 shadow-md"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                      onLoad={(e) => { e.target.style.display = 'block'; }}
                     />
                   </div>
                 )}
@@ -795,7 +998,7 @@ const BrandManagement = () => {
                         {brand.imageUrl && (
                           <div className="mt-4">
                             <img 
-                              src={brand.imageUrl} 
+                              src={fileUploadService.getFileUrl(brand.imageUrl)} 
                               alt={brand.name} 
                               className="w-full h-40 object-cover rounded-xl border border-slate-200 shadow-md"
                             />

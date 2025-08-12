@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
+import { useNotifications } from '../contexts/NotificationContext';
+import { perfumeService } from '../services/perfumeService';
 import AdminLayout from '../components/AdminLayout';
 
 const PerfumeManagement = () => {
-  const { data, updateData } = useData();
-  const [categories, setCategories] = useState(data.categories);
+  const { categories, getAllPerfumes, fetchDataFromAPI } = useData();
+  const { addNotification } = useNotifications();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPerfume, setEditingPerfume] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,46 +28,31 @@ const PerfumeManagement = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (editingPerfume) {
-      // Update existing perfume
-      const updatedCategories = categories.map(cat => ({
-        ...cat,
-        brands: cat.brands.map(brand => ({
-          ...brand,
-          perfumes: brand.perfumes.map(perfume => 
-            perfume.id === editingPerfume.id 
-              ? { ...perfume, ...formData }
-              : perfume
-          )
-        }))
-      }));
-      setCategories(updatedCategories);
-      updateData({ ...data, categories: updatedCategories });
-      setEditingPerfume(null);
-    } else {
-      // Add new perfume
-      const newPerfume = {
-        id: Date.now(),
-        ...formData
-      };
+    if (!formData.name || !formData.number || !formData.brandId) {
+      addNotification('Validation Error', 'Please fill in all required fields', { type: 'error' });
+      return;
+    }
+
+    try {
+      if (editingPerfume) {
+        // Update existing perfume via API
+        await perfumeService.updatePerfume(editingPerfume.id, formData);
+        addNotification('Perfume Updated', 'Perfume updated successfully!', { type: 'success' });
+        setEditingPerfume(null);
+      } else {
+        // Create new perfume via API
+        await perfumeService.createPerfume(formData);
+        addNotification('Perfume Created', 'Perfume created successfully!', { type: 'success' });
+      }
+
+      // Refresh data from API to ensure consistency
+      await fetchDataFromAPI();
       
-      const updatedCategories = categories.map(cat => 
-        cat.id === parseInt(formData.categoryId)
-          ? {
-              ...cat,
-              brands: cat.brands.map(brand => 
-                brand.id === parseInt(formData.brandId)
-                  ? { ...brand, perfumes: [...brand.perfumes, newPerfume] }
-                  : brand
-              )
-            }
-          : cat
-      );
-      setCategories(updatedCategories);
-      updateData({ ...data, categories: updatedCategories });
+    } catch (error) {
+      addNotification('Save Error', error.message || 'Failed to save perfume', { type: 'error' });
     }
     
     // Reset form
@@ -84,17 +71,19 @@ const PerfumeManagement = () => {
     setShowAddForm(true);
   };
 
-  const handleDelete = (perfumeId) => {
+  const handleDelete = async (perfumeId) => {
     if (window.confirm('Are you sure you want to delete this perfume?')) {
-      const updatedCategories = categories.map(cat => ({
-        ...cat,
-        brands: cat.brands.map(brand => ({
-          ...brand,
-          perfumes: brand.perfumes.filter(perfume => perfume.id !== perfumeId)
-        }))
-      }));
-      setCategories(updatedCategories);
-      updateData({ ...data, categories: updatedCategories });
+      try {
+        // Delete via API
+        await perfumeService.deletePerfume(perfumeId);
+        
+        // Refresh data from API to ensure consistency
+        await fetchDataFromAPI();
+        
+        addNotification('Perfume Deleted', 'Perfume deleted successfully!', { type: 'success' });
+      } catch (error) {
+        addNotification('Delete Error', error.message || 'Failed to delete perfume', { type: 'error' });
+      }
     }
   };
 
@@ -104,21 +93,7 @@ const PerfumeManagement = () => {
     setFormData({ name: '', number: '', brandId: '', categoryId: '' });
   };
 
-  const getAllPerfumes = () => {
-    return categories.reduce((acc, category) => {
-      const perfumesWithContext = category.brands.reduce((brandAcc, brand) => {
-        const perfumesWithBrand = brand.perfumes.map(perfume => ({
-          ...perfume,
-          brandName: brand.name,
-          categoryName: category.name,
-          brandId: brand.id,
-          categoryId: category.id
-        }));
-        return [...brandAcc, ...perfumesWithBrand];
-      }, []);
-      return [...acc, ...perfumesWithContext];
-    }, []);
-  };
+
 
   const getFilteredPerfumes = () => {
     let perfumes = getAllPerfumes();
@@ -127,7 +102,7 @@ const PerfumeManagement = () => {
     if (searchTerm) {
       perfumes = perfumes.filter(perfume => 
         perfume.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        perfume.number.toLowerCase().includes(searchTerm.toLowerCase())
+        String(perfume.number).toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
@@ -198,7 +173,7 @@ const PerfumeManagement = () => {
                 </div>
                 <div>
                   <label htmlFor="number" className="block text-sm font-medium text-gray-700">
-                    Perfume Number
+                    Perfume Code/Number
                   </label>
                   <input
                     type="text"
@@ -208,7 +183,8 @@ const PerfumeManagement = () => {
                     value={formData.number}
                     onChange={handleInputChange}
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="e.g., 001, N°5, 100"
+                    placeholder="e.g., A-100, D-001, TF-123"
+                    maxLength="20"
                   />
                 </div>
               </div>
@@ -361,7 +337,7 @@ const PerfumeManagement = () => {
                           Perfume
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Number
+                          Code/Number
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Brand

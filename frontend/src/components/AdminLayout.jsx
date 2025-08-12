@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import SessionTimer from './SessionTimer';
 
 const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -52,6 +53,7 @@ const AdminLayout = ({ children }) => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <SessionTimer />
             <button
               onClick={handleLogout}
               className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-red-600 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -68,8 +70,8 @@ const AdminLayout = ({ children }) => {
       <div className="flex flex-1">
         {/* Sidebar */}
         <div className={`lg:block lg:w-64 lg:flex-shrink-0 ${sidebarOpen ? 'block' : 'hidden'}`}>
-          <div className="flex flex-col h-full bg-white border-r border-gray-200">
-            <nav className="flex-1 px-2 py-4 space-y-1">
+          <div className="flex flex-col bg-white border-r border-gray-200 sticky top-16 h-screen">
+            <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
               {navigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
@@ -101,8 +103,10 @@ const AdminLayout = ({ children }) => {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col">
-          {children}
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>

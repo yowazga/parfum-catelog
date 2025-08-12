@@ -13,27 +13,34 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/categories")
 @CrossOrigin(origins = "*")
 public class CategoryController {
     
     @Autowired
     private CategoryService categoryService;
     
-    @GetMapping
+    // Public endpoint for home page
+    @GetMapping("/public/categories")
+    public ResponseEntity<List<CategoryDTO>> getPublicCategories() {
+        List<CategoryDTO> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
+    }
+    
+    // Protected endpoint for admin
+    @GetMapping("/categories")
     public ResponseEntity<List<CategoryDTO>> getAllCategories() {
         List<CategoryDTO> categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);
     }
     
-    @GetMapping("/{id}")
+    @GetMapping("/categories/{id}")
     public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable Long id) {
         Optional<CategoryDTO> category = categoryService.getCategoryById(id);
         return category.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    @PostMapping
+    @PostMapping("/categories")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryRequestDTO categoryRequest) {
         try {
@@ -44,7 +51,7 @@ public class CategoryController {
         }
     }
     
-    @PutMapping("/{id}")
+    @PutMapping("/categories/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryRequestDTO categoryRequest) {
         Optional<CategoryDTO> updatedCategory = categoryService.updateCategory(id, categoryRequest);
@@ -52,7 +59,7 @@ public class CategoryController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/categories/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         try {
@@ -67,10 +74,5 @@ public class CategoryController {
         }
     }
     
-    @GetMapping("/public")
-    @RequestMapping("/api/public/categories")
-    public ResponseEntity<List<CategoryDTO>> getPublicCategories() {
-        List<CategoryDTO> categories = categoryService.getAllCategories();
-        return ResponseEntity.ok(categories);
-    }
+
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import SmartAdminLink from './SmartAdminLink';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,9 +11,14 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0">
+            <Link to="/" className="flex-shrink-0 flex items-center space-x-3">
+              <img 
+                src="/aromaluxe-logo.svg" 
+                alt="AromaLuxe Logo" 
+                className="h-8 w-auto"
+              />
               <h1 className="text-2xl font-bold text-gray-900">
-                Parfum Catalog
+                AromaLuxe
               </h1>
             </Link>
           </div>
@@ -28,9 +34,9 @@ const Header = () => {
             <a href="#unisex" className="text-gray-700 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors">
               Unisex
             </a>
-            <Link to="/admin/login" className="admin-button">
+            <SmartAdminLink className="admin-button">
               Admin
-            </Link>
+            </SmartAdminLink>
           </nav>
 
           {/* Mobile menu button */}
@@ -63,9 +69,9 @@ const Header = () => {
               <a href="#unisex" className="text-gray-700 hover:text-purple-600 block px-3 py-2 text-base font-medium">
                 Unisex
               </a>
-              <Link to="/admin/login" className="admin-button block text-center mt-4">
+              <SmartAdminLink className="admin-button block text-center mt-4">
                 Admin
-              </Link>
+              </SmartAdminLink>
             </div>
           </div>
         )}

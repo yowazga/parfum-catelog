@@ -20,14 +20,14 @@ public class CategoryService {
     private CategoryRepository categoryRepository;
     
     public List<CategoryDTO> getAllCategories() {
-        List<Category> categories = categoryRepository.findAllWithBrandsAndPerfumes();
+        List<Category> categories = categoryRepository.findAll();
         return categories.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
     
     public Optional<CategoryDTO> getCategoryById(Long id) {
-        return categoryRepository.findByIdWithBrandsAndPerfumes(id)
+        return categoryRepository.findByIdWithBrands(id)
                 .map(this::convertToDTO);
     }
     

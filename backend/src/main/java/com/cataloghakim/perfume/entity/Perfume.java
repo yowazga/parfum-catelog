@@ -19,10 +19,10 @@ public class Perfume {
     @Column(nullable = false)
     private String name;
     
-    @NotNull(message = "Perfume number is required")
-    @Min(value = 1, message = "Perfume number must be at least 1")
+    @NotBlank(message = "Perfume number is required")
+    @Size(min = 1, max = 20, message = "Perfume number must be between 1 and 20 characters")
     @Column(nullable = false)
-    private Integer number;
+    private String number;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "brand_id", nullable = false)
@@ -32,7 +32,7 @@ public class Perfume {
     // Constructors
     public Perfume() {}
     
-    public Perfume(String name, Integer number, Brand brand) {
+    public Perfume(String name, String number, Brand brand) {
         this.name = name;
         this.number = number;
         this.brand = brand;
@@ -55,11 +55,11 @@ public class Perfume {
         this.name = name;
     }
     
-    public Integer getNumber() {
+    public String getNumber() {
         return number;
     }
     
-    public void setNumber(Integer number) {
+    public void setNumber(String number) {
         this.number = number;
     }
     

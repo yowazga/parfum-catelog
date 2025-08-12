@@ -4,7 +4,7 @@ public class PerfumeDTO {
     
     private Long id;
     private String name;
-    private Integer number;
+    private String number;
     private Long brandId;
     private String brandName;
     private Long categoryId;
@@ -13,7 +13,7 @@ public class PerfumeDTO {
     // Constructors
     public PerfumeDTO() {}
     
-    public PerfumeDTO(Long id, String name, Integer number, Long brandId, String brandName) {
+    public PerfumeDTO(Long id, String name, String number, Long brandId, String brandName) {
         this.id = id;
         this.name = name;
         this.number = number;
@@ -21,7 +21,7 @@ public class PerfumeDTO {
         this.brandName = brandName;
     }
     
-    public PerfumeDTO(Long id, String name, Integer number, Long brandId, String brandName, Long categoryId, String categoryName) {
+    public PerfumeDTO(Long id, String name, String number, Long brandId, String brandName, Long categoryId, String categoryName) {
         this.id = id;
         this.name = name;
         this.number = number;
@@ -48,11 +48,11 @@ public class PerfumeDTO {
         this.name = name;
     }
     
-    public Integer getNumber() {
+    public String getNumber() {
         return number;
     }
     
-    public void setNumber(Integer number) {
+    public void setNumber(String number) {
         this.number = number;
     }
     

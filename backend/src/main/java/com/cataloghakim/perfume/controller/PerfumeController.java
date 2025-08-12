@@ -14,39 +14,38 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/perfumes")
 @CrossOrigin(origins = "*")
 public class PerfumeController {
     
     @Autowired
     private PerfumeService perfumeService;
     
-    @GetMapping
+    @GetMapping("/perfumes")
     public ResponseEntity<List<PerfumeDTO>> getAllPerfumes() {
         List<PerfumeDTO> perfumes = perfumeService.getAllPerfumes();
         return ResponseEntity.ok(perfumes);
     }
     
-    @GetMapping("/{id}")
+    @GetMapping("/perfumes/{id}")
     public ResponseEntity<PerfumeDTO> getPerfumeById(@PathVariable Long id) {
         Optional<PerfumeDTO> perfume = perfumeService.getPerfumeById(id);
         return perfume.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    @GetMapping("/brand/{brandId}")
+    @GetMapping("/perfumes/brand/{brandId}")
     public ResponseEntity<List<PerfumeDTO>> getPerfumesByBrand(@PathVariable Long brandId) {
         List<PerfumeDTO> perfumes = perfumeService.getPerfumesByBrand(brandId);
         return ResponseEntity.ok(perfumes);
     }
     
-    @GetMapping("/category/{categoryId}")
+    @GetMapping("/perfumes/category/{categoryId}")
     public ResponseEntity<List<PerfumeDTO>> getPerfumesByCategory(@PathVariable Long categoryId) {
         List<PerfumeDTO> perfumes = perfumeService.getPerfumesByCategory(categoryId);
         return ResponseEntity.ok(perfumes);
     }
     
-    @PostMapping
+    @PostMapping("/perfumes")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PerfumeDTO> createPerfume(@Valid @RequestBody PerfumeRequestDTO perfumeRequest) {
         try {
@@ -57,7 +56,7 @@ public class PerfumeController {
         }
     }
     
-    @PutMapping("/{id}")
+    @PutMapping("/perfumes/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PerfumeDTO> updatePerfume(@PathVariable Long id, @Valid @RequestBody PerfumeRequestDTO perfumeRequest) {
         Optional<PerfumeDTO> updatedPerfume = perfumeService.updatePerfume(id, perfumeRequest);
@@ -65,7 +64,7 @@ public class PerfumeController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/perfumes/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePerfume(@PathVariable Long id) {
         boolean deleted = perfumeService.deletePerfume(id);
@@ -103,29 +102,25 @@ public class PerfumeController {
     }
     
     // Public endpoints
-    @GetMapping("/public")
-    @RequestMapping("/api/public/perfumes")
+    @GetMapping("/public/perfumes")
     public ResponseEntity<List<PerfumeDTO>> getPublicPerfumes() {
         List<PerfumeDTO> perfumes = perfumeService.getAllPerfumes();
         return ResponseEntity.ok(perfumes);
     }
     
-    @GetMapping("/public/brand/{brandId}")
-    @RequestMapping("/api/public/perfumes/brand/{brandId}")
+    @GetMapping("/public/perfumes/brand/{brandId}")
     public ResponseEntity<List<PerfumeDTO>> getPublicPerfumesByBrand(@PathVariable Long brandId) {
         List<PerfumeDTO> perfumes = perfumeService.getPerfumesByBrand(brandId);
         return ResponseEntity.ok(perfumes);
     }
     
-    @GetMapping("/public/category/{categoryId}")
-    @RequestMapping("/api/public/perfumes/category/{categoryId}")
+    @GetMapping("/public/perfumes/category/{categoryId}")
     public ResponseEntity<List<PerfumeDTO>> getPublicPerfumesByCategory(@PathVariable Long categoryId) {
         List<PerfumeDTO> perfumes = perfumeService.getPerfumesByCategory(categoryId);
         return ResponseEntity.ok(perfumes);
     }
     
-    @PostMapping("/public/search")
-    @RequestMapping("/api/public/perfumes/search")
+    @PostMapping("/public/perfumes/search")
     public ResponseEntity<List<PerfumeDTO>> publicSearchAndFilter(@RequestBody SearchRequestDTO searchRequest) {
         List<PerfumeDTO> perfumes = perfumeService.searchAndFilter(searchRequest);
         return ResponseEntity.ok(perfumes);
