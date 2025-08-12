@@ -1,4 +1,4 @@
-# 🌸 AromaLuxe Perfume Catalog
+# AromaLuxe Perfume Catalog
 
 A modern, full-stack web application for managing and browsing a perfume catalog with beautiful UI and robust backend functionality.
 
