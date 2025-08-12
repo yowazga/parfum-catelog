@@ -11,6 +11,7 @@ import CategoryManagement from './pages/CategoryManagement';
 import BrandManagement from './pages/BrandManagement';
 import PerfumeManagement from './pages/PerfumeManagement';
 import ImageManagement from './pages/ImageManagement';
+import UserManagement from './pages/UserManagement';
 import Home from './pages/Home';
 
 import './index.css';
@@ -59,6 +60,11 @@ function App() {
               <Route path="/admin/images" element={
                 <ProtectedRoute>
                   <ImageManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute>
+                  <UserManagement />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<Navigate to="/" replace />} />

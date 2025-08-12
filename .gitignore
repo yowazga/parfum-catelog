@@ -1,0 +1,314 @@
+# ===========================================
+# GLOBAL GITIGNORE FOR FULL-STACK APP
+# ===========================================
+
+# ===========================================
+# FRONTEND (React/Vite)
+# ===========================================
+
+# Dependencies
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+
+# Production builds
+frontend/dist/
+frontend/build/
+
+# Environment variables
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/lerna-debug.log*
+frontend/.pnpm-debug.log*
+
+# Runtime data
+frontend/pids
+frontend/*.pid
+frontend/*.seed
+frontend/*.pid.lock
+
+# Coverage directory used by tools like istanbul
+frontend/coverage/
+frontend/*.lcov
+
+# nyc test coverage
+frontend/.nyc_output
+
+# Dependency directories
+frontend/jspm_packages/
+
+# Optional npm cache directory
+frontend/.npm
+
+# Optional eslint cache
+frontend/.eslintcache
+
+# Optional stylelint cache
+frontend/.stylelintcache
+
+# Microbundle cache
+frontend/.rpt2_cache/
+frontend/.rts2_cache_cjs/
+frontend/.rts2_cache_es/
+frontend/.rts2_cache_umd/
+
+# Optional REPL history
+frontend/.node_repl_history
+
+# Output of 'npm pack'
+frontend/*.tgz
+
+# Yarn Integrity file
+frontend/.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+frontend/.parcel-cache
+
+# Next.js build output
+frontend/.next
+
+# Nuxt.js build / generate output
+frontend/.nuxt
+frontend/dist
+
+# Storybook build outputs
+frontend/.out
+frontend/.storybook-out
+
+# Temporary folders
+frontend/tmp/
+frontend/temp/
+
+# ===========================================
+# BACKEND (Spring Boot/Java)
+# ===========================================
+
+# Compiled class files
+backend/target/
+backend/*.class
+
+# Log files
+backend/*.log
+backend/logs/
+
+# BlueJ files
+backend/*.ctxt
+
+# Mobile Tools for Java (J2ME)
+backend/MIDletSuite.txt
+
+# Package Files
+backend/*.jar
+backend/*.war
+backend/*.nar
+backend/*.ear
+backend/*.zip
+backend/*.tar.gz
+backend/*.rar
+
+# Virtual machine crash logs
+backend/hs_err_pid*
+backend/replay_pid*
+
+# Maven
+backend/.mvn/timing.properties
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+backend/.gradle
+backend/build/
+backend/gradle-app.setting
+backend/!gradle-wrapper.jar
+backend/!gradle-wrapper.properties
+
+# ===========================================
+# DATABASE
+# ===========================================
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# ===========================================
+# UPLOADS & MEDIA
+# ===========================================
+
+# File uploads
+backend/uploads/
+backend/images/
+backend/files/
+
+# ===========================================
+# IDE & EDITOR
+# ===========================================
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ===========================================
+# OPERATING SYSTEM
+# ===========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===========================================
+# SECURITY & SENSITIVE DATA
+# ===========================================
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# API keys
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Certificates
+*.crt
+*.cer
+*.der
+
+# ===========================================
+# TESTING & COVERAGE
+# ===========================================
+
+# Test coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Test results
+test-results/
+junit/
+reports/
+
+# ===========================================
+# DEPLOYMENT & BUILD
+# ===========================================
+
+# Build artifacts
+build/
+dist/
+out/
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ===========================================
+# MISC
+# ===========================================
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Cache directories
+.cache/
+.temp/
+.tmp/
+
+# Local configuration
+config.local.*
+settings.local.*

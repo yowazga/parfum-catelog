@@ -3,6 +3,8 @@
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/dto/CategoryDTO.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/repository/UserRepository.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/service/CategoryService.java
+/Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/dto/UserUpdateDTO.java
+/Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/dto/UserProfileDTO.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/service/JwtService.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/dto/BrandRequestDTO.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/dto/CategoryRequestDTO.java
@@ -17,6 +19,7 @@
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/dto/SearchRequestDTO.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/entity/Brand.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/controller/BrandController.java
+/Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/dto/ChangePasswordDTO.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/entity/Category.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/controller/AuthController.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/controller/PerfumeController.java
@@ -31,4 +34,5 @@
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/dto/PerfumeDTO.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/repository/BrandRepository.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/config/PasswordConfig.java
+/Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/controller/UserController.java
 /Users/Younes/Desktop/other-projects/catalog hakim/backend/src/main/java/com/cataloghakim/perfume/service/FileStorageService.java

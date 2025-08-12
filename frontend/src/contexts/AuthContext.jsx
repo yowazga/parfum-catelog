@@ -134,12 +134,19 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (username, token) => {
-    setUser({ username });
+    // Create user object with appropriate roles based on username
+    const userWithRoles = { 
+      username, 
+      email: username === 'admin' ? 'admin@cataloghakim.com' : `${username}@cataloghakim.com`,
+      roles: username === 'admin' ? ['ROLE_USER', 'ROLE_ADMIN'] : ['ROLE_USER']
+    };
+    
+    setUser(userWithRoles);
     setToken(token);
     
     // Store in localStorage for persistence
     localStorage.setItem('authToken', token);
-    localStorage.setItem('adminUser', JSON.stringify({ username }));
+    localStorage.setItem('adminUser', JSON.stringify(userWithRoles));
     
     setupSessionTimeout(); // Start session timeout when user logs in
   };
