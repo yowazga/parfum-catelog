@@ -5,30 +5,63 @@
  */
 export const clearAllCaches = async () => {
   try {
+    console.log('Starting cache clearing process...');
+    
     // Clear service worker cache
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      console.log('Clearing service worker cache...');
       const messageChannel = new MessageChannel();
       
       return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          console.log('Service worker cache clear timeout, using fallback');
+          fallbackCacheClear().then(resolve);
+        }, 3000); // 3 second timeout
+        
         messageChannel.port1.onmessage = (event) => {
+          clearTimeout(timeout);
           if (event.data.type === 'CACHE_CLEARED') {
             console.log('Service Worker cache cleared');
             resolve();
           }
         };
         
-        navigator.serviceWorker.controller.postMessage(
-          { type: 'CLEAR_CACHE' },
-          [messageChannel.port2]
-        );
+        try {
+          navigator.serviceWorker.controller.postMessage(
+            { type: 'CLEAR_CACHE' },
+            [messageChannel.port2]
+          );
+        } catch (error) {
+          console.log('Service worker message failed, using fallback');
+          clearTimeout(timeout);
+          fallbackCacheClear().then(resolve);
+        }
       });
+    } else {
+      console.log('No service worker controller, using fallback');
+      await fallbackCacheClear();
     }
     
-    // Fallback: clear caches manually
+  } catch (error) {
+    console.error('Error clearing caches:', error);
+    // Fallback: force reload
+    window.location.reload(true);
+  }
+};
+
+/**
+ * Fallback cache clearing method
+ */
+const fallbackCacheClear = async () => {
+  try {
+    // Clear caches manually
     if ('caches' in window) {
       const cacheNames = await caches.keys();
       await Promise.all(
-        cacheNames.map(cacheName => caches.delete(cacheName))
+        cacheNames.map(cacheName => {
+          console.log('Deleting cache:', cacheName);
+          return caches.delete(cacheName);
+        })
       );
       console.log('Manual cache clearing completed');
     }
@@ -42,8 +75,8 @@ export const clearAllCaches = async () => {
     window.location.reload(true);
     
   } catch (error) {
-    console.error('Error clearing caches:', error);
-    // Fallback: force reload
+    console.error('Fallback cache clearing failed:', error);
+    // Last resort: force reload
     window.location.reload(true);
   }
 };

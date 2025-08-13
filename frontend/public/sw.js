@@ -56,6 +56,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip unsupported URL schemes (chrome-extension, data:, etc.)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
+  // Skip external domains (only cache our own domain)
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   // Handle API calls - always fetch fresh
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
@@ -170,7 +180,14 @@ self.addEventListener('message', (event) => {
         );
       }).then(() => {
         console.log('All caches cleared');
-        event.ports[0].postMessage({ type: 'CACHE_CLEARED' });
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({ type: 'CACHE_CLEARED' });
+        }
+      }).catch((error) => {
+        console.error('Error clearing caches:', error);
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({ type: 'CACHE_ERROR', error: error.message });
+        }
       })
     );
   }
