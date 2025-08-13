@@ -33,10 +33,6 @@ const UserManagement = () => {
 
   // Load current user profile and all users on component mount
   useEffect(() => {
-    console.log('UserManagement: Current user:', user);
-    console.log('UserManagement: User roles:', user?.roles);
-    console.log('UserManagement: Is admin?', user?.roles?.includes('ADMIN'));
-    
     const loadUserProfile = async () => {
       try {
         const profile = await userService.getCurrentUser();
@@ -53,7 +49,6 @@ const UserManagement = () => {
     const loadUsers = async () => {
       // Only load users if the current user has admin role
       if (!user || !user.roles || !user.roles.includes('ADMIN')) {
-        console.log('UserManagement: Cannot load users - not admin');
         return;
       }
       
@@ -298,29 +293,7 @@ const UserManagement = () => {
             Manage your account settings, update your profile information, and change your password.
           </p>
           
-          {/* Debug Info */}
-          <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left max-w-2xl mx-auto">
-            <h3 className="font-semibold text-gray-800 mb-2">Debug Info:</h3>
-            <p className="text-sm text-gray-600">Username: {user?.username}</p>
-            <p className="text-sm text-gray-600">Roles: {JSON.stringify(user?.roles)}</p>
-            <p className="text-sm text-gray-600">Is Admin: {user?.roles?.includes('ADMIN') ? 'Yes' : 'No'}</p>
-            <p className="text-sm text-gray-600">Active Tab: {activeTab}</p>
-            
-            <button
-              onClick={() => {
-                console.log('Force refresh clicked');
-                console.log('Current user object:', user);
-                console.log('Current user roles:', user?.roles);
-                console.log('Checking for ADMIN role:', user?.roles?.includes('ADMIN'));
-                
-                // Force reload the page to get fresh data
-                window.location.reload();
-              }}
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-            >
-              Force Refresh Page
-            </button>
-          </div>
+
         </div>
 
         {/* Tab Navigation */}
@@ -329,10 +302,7 @@ const UserManagement = () => {
             <nav className="-mb-px flex space-x-8">
               <button
                 key="profile-tab"
-                onClick={() => {
-                  console.log('Profile tab clicked, setting activeTab to profile');
-                  setActiveTab('profile');
-                }}
+                onClick={() => setActiveTab('profile')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'profile'
                     ? 'border-indigo-500 text-indigo-600'
@@ -346,10 +316,7 @@ const UserManagement = () => {
               </button>
               <button
                 key="password-tab"
-                onClick={() => {
-                  console.log('Password tab clicked, setting activeTab to password');
-                  setActiveTab('password');
-                }}
+                onClick={() => setActiveTab('password')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'password'
                     ? 'border-indigo-500 text-indigo-600'
@@ -364,12 +331,7 @@ const UserManagement = () => {
               {user && user.roles && user.roles.includes('ADMIN') && (
                 <button
                   key="users-tab"
-                  onClick={() => {
-                    console.log('Users tab clicked, setting activeTab to users');
-                    console.log('Current activeTab before change:', activeTab);
-                    setActiveTab('users');
-                    console.log('activeTab should now be set to users');
-                  }}
+                  onClick={() => setActiveTab('users')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === 'users'
                       ? 'border-indigo-500 text-indigo-600'
@@ -388,7 +350,6 @@ const UserManagement = () => {
 
         {/* Content */}
         <div className="max-w-2xl mx-auto">
-          {console.log('Rendering content for activeTab:', activeTab)}
           {activeTab === 'profile' && (
             <div className="bg-white shadow-lg rounded-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile Information</h2>
@@ -532,8 +493,6 @@ const UserManagement = () => {
           )}
 
           {activeTab === 'users' && user && user.roles && user.roles.includes('ADMIN') && (
-            console.log('Rendering users tab content') || true
-          ) && (
             <div className="space-y-6">
               {/* Header with Add Button */}
               <div className="flex justify-between items-center">

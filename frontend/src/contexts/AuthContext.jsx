@@ -112,19 +112,14 @@ export const AuthProvider = ({ children }) => {
           const isValid = await authService.validateToken();
           if (isValid) {
             const parsedUser = JSON.parse(storedUser);
-            console.log('AuthContext: Restored user from storage:', parsedUser);
-            console.log('AuthContext: Restored user roles:', parsedUser.roles);
-            console.log('AuthContext: Restored user is admin?', parsedUser.roles?.includes('ADMIN'));
             
             // Check if this is an old format user (with ROLE_ prefix)
             if (parsedUser.roles && parsedUser.roles.some(role => role.startsWith('ROLE_'))) {
-              console.log('AuthContext: Detected old role format, converting to new format');
               // Convert old format to new format
               const newRoles = parsedUser.roles.map(role => 
                 role.startsWith('ROLE_') ? role.substring(5) : role
               );
               parsedUser.roles = newRoles;
-              console.log('AuthContext: Converted roles:', newRoles);
               
               // Update localStorage with new format
               localStorage.setItem('adminUser', JSON.stringify(parsedUser));
@@ -132,9 +127,7 @@ export const AuthProvider = ({ children }) => {
             
             // Special case: if this is hakim with old format, convert to admin
             if (parsedUser.username === 'hakim' && parsedUser.roles.includes('ROLE_USER') && !parsedUser.roles.includes('ADMIN')) {
-              console.log('AuthContext: Converting hakim to admin role');
               parsedUser.roles = ['USER', 'ADMIN'];
-              console.log('AuthContext: New roles for hakim:', parsedUser.roles);
               
               // Update localStorage with new format
               localStorage.setItem('adminUser', JSON.stringify(parsedUser));
@@ -170,23 +163,12 @@ export const AuthProvider = ({ children }) => {
       roles: username === 'hakim' ? ['USER', 'ADMIN'] : ['USER']
     };
     
-    console.log('AuthContext: Login called with username:', username);
-    console.log('AuthContext: Created user object:', userWithRoles);
-    console.log('AuthContext: User roles:', userWithRoles.roles);
-    console.log('AuthContext: Is admin?', userWithRoles.roles.includes('ADMIN'));
-    console.log('AuthContext: Storing user in localStorage:', JSON.stringify(userWithRoles));
-    
     setUser(userWithRoles);
     setToken(token);
     
     // Store in localStorage for persistence
     localStorage.setItem('authToken', token);
     localStorage.setItem('adminUser', JSON.stringify(userWithRoles));
-    
-    // Verify what was stored
-    const storedUser = localStorage.getItem('adminUser');
-    console.log('AuthContext: Verified stored user:', storedUser);
-    console.log('AuthContext: Parsed stored user:', JSON.parse(storedUser));
     
     setupSessionTimeout(); // Start session timeout when user logs in
   };

@@ -5,23 +5,18 @@
  */
 export const clearAllCaches = async () => {
   try {
-    console.log('Starting cache clearing process...');
-    
     // Clear service worker cache
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      console.log('Clearing service worker cache...');
       const messageChannel = new MessageChannel();
       
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
-          console.log('Service worker cache clear timeout, using fallback');
           fallbackCacheClear().then(resolve);
         }, 3000); // 3 second timeout
         
         messageChannel.port1.onmessage = (event) => {
           clearTimeout(timeout);
           if (event.data.type === 'CACHE_CLEARED') {
-            console.log('Service Worker cache cleared');
             resolve();
           }
         };
@@ -32,13 +27,11 @@ export const clearAllCaches = async () => {
             [messageChannel.port2]
           );
         } catch (error) {
-          console.log('Service worker message failed, using fallback');
           clearTimeout(timeout);
           fallbackCacheClear().then(resolve);
         }
       });
     } else {
-      console.log('No service worker controller, using fallback');
       await fallbackCacheClear();
     }
     
@@ -58,18 +51,13 @@ const fallbackCacheClear = async () => {
     if ('caches' in window) {
       const cacheNames = await caches.keys();
       await Promise.all(
-        cacheNames.map(cacheName => {
-          console.log('Deleting cache:', cacheName);
-          return caches.delete(cacheName);
-        })
+        cacheNames.map(cacheName => caches.delete(cacheName))
       );
-      console.log('Manual cache clearing completed');
     }
     
     // Clear localStorage and sessionStorage
     localStorage.clear();
     sessionStorage.clear();
-    console.log('Local storage cleared');
     
     // Force page reload
     window.location.reload(true);
@@ -145,7 +133,6 @@ export const enableAutoRefresh = () => {
   setInterval(async () => {
     const hasUpdate = await checkForUpdates();
     if (hasUpdate) {
-      console.log('App update detected, refreshing...');
       clearAllCaches();
     }
   }, 5 * 60 * 1000);
@@ -154,7 +141,6 @@ export const enableAutoRefresh = () => {
   window.addEventListener('focus', async () => {
     const hasUpdate = await checkForUpdates();
     if (hasUpdate) {
-      console.log('App update detected on focus, refreshing...');
       clearAllCaches();
     }
   });

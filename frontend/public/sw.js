@@ -12,15 +12,12 @@ const STATIC_FILES = [
 
 // Install event - cache static files
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('Caching static files');
         return cache.addAll(STATIC_FILES);
       })
       .then(() => {
-        console.log('Service Worker installed');
         return self.skipWaiting();
       })
   );
@@ -28,19 +25,16 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      console.log('Service Worker activated');
       return self.clients.claim();
     })
   );
@@ -169,22 +163,18 @@ self.addEventListener('fetch', (event) => {
 // Message event - handle cache clearing
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'CLEAR_CACHE') {
-    console.log('Clearing all caches...');
     event.waitUntil(
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            console.log('Deleting cache:', cacheName);
             return caches.delete(cacheName);
           })
         );
       }).then(() => {
-        console.log('All caches cleared');
         if (event.ports && event.ports[0]) {
           event.ports[0].postMessage({ type: 'CACHE_CLEARED' });
         }
       }).catch((error) => {
-        console.error('Error clearing caches:', error);
         if (event.ports && event.ports[0]) {
           event.ports[0].postMessage({ type: 'CACHE_ERROR', error: error.message });
         }
