@@ -33,16 +33,7 @@ public class FileUploadController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
-            System.out.println("=== FILE UPLOAD STARTED ===");
-            System.out.println("Upload directory: " + uploadDir);
-            System.out.println("Original filename: " + file.getOriginalFilename());
-            System.out.println("File size: " + file.getSize() + " bytes");
-            
             String filename = fileStorageService.storeFile(file);
-            
-            System.out.println("Stored filename: " + filename);
-            System.out.println("Full path: " + uploadDir + "/" + filename);
-            System.out.println("=== FILE UPLOAD COMPLETED ===");
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
