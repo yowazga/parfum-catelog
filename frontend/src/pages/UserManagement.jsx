@@ -228,10 +228,20 @@ const UserManagement = () => {
             } else {
                 // Create new user
                 console.log('Creating new user...');
-                const response = await userService.createUser(userFormData);
-                console.log('User created successfully:', response);
-                setUsers(prev => [...prev, response.user]);
-                addNotification('User Created', 'User created successfully!', { type: 'success' });
+                console.log('Calling userService.createUser with:', userFormData);
+                
+                try {
+                    const response = await userService.createUser(userFormData);
+                    console.log('User created successfully:', response);
+                    console.log('Response structure:', Object.keys(response));
+                    console.log('Response.user:', response.user);
+                    
+                    setUsers(prev => [...prev, response.user]);
+                    addNotification('User Created', 'User created successfully!', { type: 'success' });
+                } catch (createError) {
+                    console.error('Error in userService.createUser:', createError);
+                    throw createError;
+                }
             }
 
             setUserFormData({
