@@ -189,6 +189,8 @@ const UserManagement = () => {
     };
 
     const handleCreateUser = async (e) => {
+        console.log('🚀 handleCreateUser function called!');
+        console.log('Event object:', e);
         e.preventDefault();
         setLoading(true);
 
@@ -531,7 +533,7 @@ const UserManagement = () => {
                     {editingUser ? 'Edit User' : 'Create New User'}
                   </h3>
                   
-
+                  {console.log('🔄 Form is rendering, showUserForm:', showUserForm)}
                   
                   <form onSubmit={handleCreateUser} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -642,7 +644,7 @@ const UserManagement = () => {
                         type="submit"
                         disabled={loading}
                         title={loading ? 'Loading...' : 'Click to update user'}
-
+                        onClick={() => console.log('🔄 Button clicked! Form should submit...')}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                       >
                         {loading ? (
