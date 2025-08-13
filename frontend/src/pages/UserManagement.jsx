@@ -297,6 +297,30 @@ const UserManagement = () => {
           <p className="text-gray-600 max-w-2xl mx-auto">
             Manage your account settings, update your profile information, and change your password.
           </p>
+          
+          {/* Debug Info */}
+          <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left max-w-2xl mx-auto">
+            <h3 className="font-semibold text-gray-800 mb-2">Debug Info:</h3>
+            <p className="text-sm text-gray-600">Username: {user?.username}</p>
+            <p className="text-sm text-gray-600">Roles: {JSON.stringify(user?.roles)}</p>
+            <p className="text-sm text-gray-600">Is Admin: {user?.roles?.includes('ADMIN') ? 'Yes' : 'No'}</p>
+            <p className="text-sm text-gray-600">Active Tab: {activeTab}</p>
+            
+            <button
+              onClick={() => {
+                console.log('Force refresh clicked');
+                console.log('Current user object:', user);
+                console.log('Current user roles:', user?.roles);
+                console.log('Checking for ADMIN role:', user?.roles?.includes('ADMIN'));
+                
+                // Force reload the page to get fresh data
+                window.location.reload();
+              }}
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+            >
+              Force Refresh Page
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}

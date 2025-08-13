@@ -130,6 +130,16 @@ export const AuthProvider = ({ children }) => {
               localStorage.setItem('adminUser', JSON.stringify(parsedUser));
             }
             
+            // Special case: if this is hakim with old format, convert to admin
+            if (parsedUser.username === 'hakim' && parsedUser.roles.includes('ROLE_USER') && !parsedUser.roles.includes('ADMIN')) {
+              console.log('AuthContext: Converting hakim to admin role');
+              parsedUser.roles = ['USER', 'ADMIN'];
+              console.log('AuthContext: New roles for hakim:', parsedUser.roles);
+              
+              // Update localStorage with new format
+              localStorage.setItem('adminUser', JSON.stringify(parsedUser));
+            }
+            
             setToken(storedToken);
             setUser(parsedUser);
             setupSessionTimeout(); // Set up timeout for existing session
