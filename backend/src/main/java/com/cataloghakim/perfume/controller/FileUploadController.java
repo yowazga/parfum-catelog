@@ -2,6 +2,7 @@ package com.cataloghakim.perfume.controller;
 
 import com.cataloghakim.perfume.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -20,8 +21,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class FileUploadController {
+
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -30,7 +34,16 @@ public class FileUploadController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
+            System.out.println("=== FILE UPLOAD STARTED ===");
+            System.out.println("Upload directory: " + uploadDir);
+            System.out.println("Original filename: " + file.getOriginalFilename());
+            System.out.println("File size: " + file.getSize() + " bytes");
+            
             String filename = fileStorageService.storeFile(file);
+            
+            System.out.println("Stored filename: " + filename);
+            System.out.println("Full path: " + uploadDir + "/" + filename);
+            System.out.println("=== FILE UPLOAD COMPLETED ===");
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -51,7 +64,7 @@ public class FileUploadController {
     @GetMapping("/files/{filename:.+}")
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
         try {
-            Path filePath = Paths.get("uploads").resolve(filename).normalize();
+            Path filePath = Paths.get(uploadDir).resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
