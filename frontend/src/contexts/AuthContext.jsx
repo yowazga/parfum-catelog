@@ -111,8 +111,13 @@ export const AuthProvider = ({ children }) => {
           // Validate token with backend
           const isValid = await authService.validateToken();
           if (isValid) {
+            const parsedUser = JSON.parse(storedUser);
+            console.log('AuthContext: Restored user from storage:', parsedUser);
+            console.log('AuthContext: Restored user roles:', parsedUser.roles);
+            console.log('AuthContext: Restored user is admin?', parsedUser.roles?.includes('ROLE_ADMIN'));
+            
             setToken(storedToken);
-            setUser(JSON.parse(storedUser));
+            setUser(parsedUser);
             setupSessionTimeout(); // Set up timeout for existing session
           } else {
             // Token is invalid, clear storage
@@ -140,6 +145,11 @@ export const AuthProvider = ({ children }) => {
       email: username === 'admin' ? 'admin@cataloghakim.com' : `${username}@cataloghakim.com`,
       roles: username === 'admin' ? ['ROLE_USER', 'ROLE_ADMIN'] : ['ROLE_USER']
     };
+    
+    console.log('AuthContext: Login called with username:', username);
+    console.log('AuthContext: Created user object:', userWithRoles);
+    console.log('AuthContext: User roles:', userWithRoles.roles);
+    console.log('AuthContext: Is admin?', userWithRoles.roles.includes('ROLE_ADMIN'));
     
     setUser(userWithRoles);
     setToken(token);

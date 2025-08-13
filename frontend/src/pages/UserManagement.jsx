@@ -33,6 +33,10 @@ const UserManagement = () => {
 
   // Load current user profile and all users on component mount
   useEffect(() => {
+    console.log('UserManagement: Current user:', user);
+    console.log('UserManagement: User roles:', user?.roles);
+    console.log('UserManagement: Is admin?', user?.roles?.includes('ROLE_ADMIN'));
+    
     const loadUserProfile = async () => {
       try {
         const profile = await userService.getCurrentUser();
@@ -49,6 +53,7 @@ const UserManagement = () => {
     const loadUsers = async () => {
       // Only load users if the current user has admin role
       if (!user || !user.roles || !user.roles.includes('ROLE_ADMIN')) {
+        console.log('UserManagement: Cannot load users - not admin');
         return;
       }
       
@@ -62,7 +67,7 @@ const UserManagement = () => {
 
     loadUserProfile();
     loadUsers();
-  }, []);
+  }, [user]);
 
   // Reset to profile tab if non-admin user somehow gets to users tab
   useEffect(() => {
