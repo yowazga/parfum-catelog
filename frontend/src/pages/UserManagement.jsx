@@ -305,7 +305,10 @@ const UserManagement = () => {
             <nav className="-mb-px flex space-x-8">
               <button
                 key="profile-tab"
-                onClick={() => setActiveTab('profile')}
+                onClick={() => {
+                  console.log('Profile tab clicked, setting activeTab to profile');
+                  setActiveTab('profile');
+                }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'profile'
                     ? 'border-indigo-500 text-indigo-600'
@@ -319,7 +322,10 @@ const UserManagement = () => {
               </button>
               <button
                 key="password-tab"
-                onClick={() => setActiveTab('password')}
+                onClick={() => {
+                  console.log('Password tab clicked, setting activeTab to password');
+                  setActiveTab('password');
+                }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'password'
                     ? 'border-indigo-500 text-indigo-600'
@@ -334,7 +340,12 @@ const UserManagement = () => {
               {user && user.roles && user.roles.includes('ROLE_ADMIN') && (
                 <button
                   key="users-tab"
-                  onClick={() => setActiveTab('users')}
+                  onClick={() => {
+                    console.log('Users tab clicked, setting activeTab to users');
+                    console.log('Current activeTab before change:', activeTab);
+                    setActiveTab('users');
+                    console.log('activeTab should now be set to users');
+                  }}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === 'users'
                       ? 'border-indigo-500 text-indigo-600'
@@ -353,6 +364,7 @@ const UserManagement = () => {
 
         {/* Content */}
         <div className="max-w-2xl mx-auto">
+          {console.log('Rendering content for activeTab:', activeTab)}
           {activeTab === 'profile' && (
             <div className="bg-white shadow-lg rounded-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile Information</h2>
@@ -496,6 +508,8 @@ const UserManagement = () => {
           )}
 
           {activeTab === 'users' && user && user.roles && user.roles.includes('ROLE_ADMIN') && (
+            console.log('Rendering users tab content') || true
+          ) && (
             <div className="space-y-6">
               {/* Header with Add Button */}
               <div className="flex justify-between items-center">
