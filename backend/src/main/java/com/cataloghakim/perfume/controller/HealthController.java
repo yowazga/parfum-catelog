@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
 public class HealthController {
     
     @GetMapping("/health")
