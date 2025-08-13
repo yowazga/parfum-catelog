@@ -193,6 +193,8 @@ const UserManagement = () => {
         setLoading(true);
 
         try {
+            console.log('Creating user with data:', userFormData);
+            
             if (!userFormData.username.trim() || !userFormData.email.trim()) {
                 addNotification('Validation Error', 'Username and email are required', { type: 'error' });
                 return;
@@ -218,15 +220,18 @@ const UserManagement = () => {
 
             if (editingUser) {
                 // Update existing user
+                console.log('Updating user:', editingUser.id);
                 const response = await userService.updateUser(editingUser.id, userFormData);
                 setUsers(prev => prev.map(u => u.id === editingUser.id ? response.user : u));
                 addNotification('User Updated', 'User updated successfully!', { type: 'success' });
                 setEditingUser(null);
             } else {
-                        // Create new user
-        const response = await userService.createUser(userFormData);
-        setUsers(prev => [...prev, response.user]);
-        addNotification('User Created', 'User created successfully!', { type: 'success' });
+                // Create new user
+                console.log('Creating new user...');
+                const response = await userService.createUser(userFormData);
+                console.log('User created successfully:', response);
+                setUsers(prev => [...prev, response.user]);
+                addNotification('User Created', 'User created successfully!', { type: 'success' });
             }
 
             setUserFormData({
@@ -239,6 +244,7 @@ const UserManagement = () => {
             setShowUserForm(false);
 
         } catch (error) {
+            console.error('Error creating/updating user:', error);
             addNotification('User Save Failed', error.message || 'Failed to save user', { type: 'error' });
         } finally {
             setLoading(false);
