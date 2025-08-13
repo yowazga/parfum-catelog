@@ -142,14 +142,14 @@ export const AuthProvider = ({ children }) => {
     // Create user object with appropriate roles based on username
     const userWithRoles = { 
       username, 
-      email: username === 'admin' ? 'admin@cataloghakim.com' : `${username}@cataloghakim.com`,
-      roles: username === 'admin' ? ['ROLE_USER', 'ROLE_ADMIN'] : ['ROLE_USER']
+      email: username === 'hakim' ? 'hakim@cataloghakim.com' : `${username}@cataloghakim.com`,
+      roles: username === 'hakim' ? ['USER', 'ADMIN'] : ['USER']
     };
     
     console.log('AuthContext: Login called with username:', username);
     console.log('AuthContext: Created user object:', userWithRoles);
     console.log('AuthContext: User roles:', userWithRoles.roles);
-    console.log('AuthContext: Is admin?', userWithRoles.roles.includes('ROLE_ADMIN'));
+    console.log('AuthContext: Is admin?', userWithRoles.roles.includes('ADMIN'));
     
     setUser(userWithRoles);
     setToken(token);

@@ -28,14 +28,14 @@ const UserManagement = () => {
     email: '',
     password: '',
     enabled: true,
-    roles: ['ROLE_USER']
+    roles: ['USER']
   });
 
   // Load current user profile and all users on component mount
   useEffect(() => {
     console.log('UserManagement: Current user:', user);
     console.log('UserManagement: User roles:', user?.roles);
-    console.log('UserManagement: Is admin?', user?.roles?.includes('ROLE_ADMIN'));
+    console.log('UserManagement: Is admin?', user?.roles?.includes('ADMIN'));
     
     const loadUserProfile = async () => {
       try {
@@ -52,7 +52,7 @@ const UserManagement = () => {
 
     const loadUsers = async () => {
       // Only load users if the current user has admin role
-      if (!user || !user.roles || !user.roles.includes('ROLE_ADMIN')) {
+      if (!user || !user.roles || !user.roles.includes('ADMIN')) {
         console.log('UserManagement: Cannot load users - not admin');
         return;
       }
@@ -71,7 +71,7 @@ const UserManagement = () => {
 
   // Reset to profile tab if non-admin user somehow gets to users tab
   useEffect(() => {
-    if (activeTab === 'users' && (!user || !user.roles || !user.roles.includes('ROLE_ADMIN'))) {
+    if (activeTab === 'users' && (!user || !user.roles || !user.roles.includes('ADMIN'))) {
       setActiveTab('profile');
     }
   }, [activeTab, user]);
@@ -174,17 +174,17 @@ const UserManagement = () => {
     const handleRoleChange = (role) => {
         setUserFormData(prev => {
             // Ensure roles is always an array
-            const currentRoles = Array.isArray(prev.roles) ? prev.roles : ['ROLE_USER'];
+            const currentRoles = Array.isArray(prev.roles) ? prev.roles : ['USER'];
             
             // Toggle the role
             let newRoles = currentRoles.includes(role) 
                 ? currentRoles.filter(r => r !== role)
                 : [...currentRoles, role];
             
-            // Ensure user always has at least ROLE_USER
-            if (newRoles.length === 0) {
-                newRoles = ['ROLE_USER'];
-            }
+                    // Ensure user always has at least USER
+        if (newRoles.length === 0) {
+          newRoles = ['USER'];
+        }
             
             return {
                 ...prev,
@@ -239,7 +239,7 @@ const UserManagement = () => {
                 email: '',
                 password: '',
                 enabled: true,
-                roles: ['ROLE_USER']
+                roles: ['USER']
             });
             setShowUserForm(false);
 
@@ -257,7 +257,7 @@ const UserManagement = () => {
             email: user.email,
             password: '',
             enabled: user.enabled,
-            roles: Array.isArray(user.roles) ? [...user.roles] : ['ROLE_USER']
+            roles: Array.isArray(user.roles) ? [...user.roles] : ['USER']
         });
         setShowUserForm(true);
     };
@@ -284,7 +284,7 @@ const UserManagement = () => {
             email: '',
             password: '',
             enabled: true,
-            roles: ['ROLE_USER']
+            roles: ['USER']
         });
     };
 
@@ -337,7 +337,7 @@ const UserManagement = () => {
                 </svg>
                 Change Password
               </button>
-              {user && user.roles && user.roles.includes('ROLE_ADMIN') && (
+              {user && user.roles && user.roles.includes('ADMIN') && (
                 <button
                   key="users-tab"
                   onClick={() => {
@@ -507,7 +507,7 @@ const UserManagement = () => {
             </div>
           )}
 
-          {activeTab === 'users' && user && user.roles && user.roles.includes('ROLE_ADMIN') && (
+          {activeTab === 'users' && user && user.roles && user.roles.includes('ADMIN') && (
             console.log('Rendering users tab content') || true
           ) && (
             <div className="space-y-6">
@@ -593,9 +593,9 @@ const UserManagement = () => {
                           <input
                             type="checkbox"
                             id="role-user"
-                            key={`role-user-${userFormData.roles?.includes('ROLE_USER')}`}
-                            defaultChecked={userFormData.roles?.includes('ROLE_USER') || false}
-                            onChange={() => handleRoleChange('ROLE_USER')}
+                            key={`role-user-${userFormData.roles?.includes('USER')}`}
+                            defaultChecked={userFormData.roles?.includes('USER') || false}
+                            onChange={() => handleRoleChange('USER')}
                             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                           />
                           <label htmlFor="role-user" className="ml-2 text-sm font-medium text-gray-900">
@@ -606,9 +606,9 @@ const UserManagement = () => {
                           <input
                             type="checkbox"
                             id="role-admin"
-                            key={`role-admin-${userFormData.roles?.includes('ROLE_ADMIN')}`}
-                            defaultChecked={userFormData.roles?.includes('ROLE_ADMIN') || false}
-                            onChange={() => handleRoleChange('ROLE_ADMIN')}
+                            key={`role-admin-${userFormData.roles?.includes('ADMIN')}`}
+                            defaultChecked={userFormData.roles?.includes('ADMIN') || false}
+                            onChange={() => handleRoleChange('ADMIN')}
                             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                           />
                           <label htmlFor="role-admin" className="ml-2 text-sm font-medium text-gray-900">
@@ -706,7 +706,7 @@ const UserManagement = () => {
                                 <span
                                   key={`${user.id}-${role}-${index}`}
                                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    role === 'ROLE_ADMIN' 
+                                    role === 'ADMIN' 
                                       ? 'bg-red-100 text-red-800'
                                       : 'bg-blue-100 text-blue-800'
                                   }`}
