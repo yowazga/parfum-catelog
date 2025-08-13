@@ -189,8 +189,6 @@ const UserManagement = () => {
     };
 
     const handleCreateUser = async (e) => {
-        console.log('🚀 handleCreateUser function called!');
-        console.log('Event object:', e);
         e.preventDefault();
         setLoading(true);
 
@@ -229,26 +227,11 @@ const UserManagement = () => {
                 setEditingUser(null);
             } else {
                 // Create new user
-                console.log('Creating new user...');
-                console.log('About to call userService.createUser...');
-                
                 try {
-                    console.log('Step 1: userService is already imported, calling createUser...');
                     const response = await userService.createUser(userFormData);
-                    console.log('Step 2: API call completed successfully');
-                    console.log('User created successfully:', response);
-                    console.log('Response structure:', Object.keys(response));
-                    console.log('Response.user:', response.user);
-                    
                     setUsers(prev => [...prev, response.user]);
                     addNotification('User Created', 'User created successfully!', { type: 'success' });
                 } catch (createError) {
-                    console.error('❌ Error in userService.createUser:', createError);
-                    console.error('❌ Error details:', {
-                        name: createError.name,
-                        message: createError.message,
-                        stack: createError.stack
-                    });
                     throw createError;
                 }
             }
@@ -540,8 +523,6 @@ const UserManagement = () => {
                     {editingUser ? 'Edit User' : 'Create New User'}
                   </h3>
                   
-                  {console.log('🔄 Form is rendering, showUserForm:', showUserForm)}
-                  
                   <form onSubmit={handleCreateUser} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -651,8 +632,7 @@ const UserManagement = () => {
                         type="submit"
                         disabled={loading}
                         title={loading ? 'Loading...' : 'Click to update user'}
-                        onClick={() => console.log('🔄 Button clicked! Form should submit...')}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                       >
                         {loading ? (
                           <>

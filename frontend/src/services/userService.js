@@ -62,20 +62,10 @@ export const userService = {
   // Create new user (admin only)
   createUser: async (userData) => {
     try {
-      console.log('userService.createUser called with:', userData);
       const authAxios = createAuthAxios();
-      console.log('Making POST request to /admin/users');
-      
       const response = await authAxios.post('/admin/users', userData);
-      console.log('API response received:', response);
-      console.log('Response status:', response.status);
-      console.log('Response data:', response.data);
-      
       return response.data;
     } catch (error) {
-      console.error('userService.createUser error:', error);
-      console.error('Error response:', error.response);
-      console.error('Error message:', error.message);
       throw new Error(error.response?.data?.message || 'Failed to create user');
     }
   },
