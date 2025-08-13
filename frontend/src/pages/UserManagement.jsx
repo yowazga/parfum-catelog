@@ -230,10 +230,12 @@ const UserManagement = () => {
             } else {
                 // Create new user
                 console.log('Creating new user...');
-                console.log('Calling userService.createUser with:', userFormData);
+                console.log('About to call userService.createUser...');
                 
                 try {
+                    console.log('Step 1: userService is already imported, calling createUser...');
                     const response = await userService.createUser(userFormData);
+                    console.log('Step 2: API call completed successfully');
                     console.log('User created successfully:', response);
                     console.log('Response structure:', Object.keys(response));
                     console.log('Response.user:', response.user);
@@ -241,7 +243,12 @@ const UserManagement = () => {
                     setUsers(prev => [...prev, response.user]);
                     addNotification('User Created', 'User created successfully!', { type: 'success' });
                 } catch (createError) {
-                    console.error('Error in userService.createUser:', createError);
+                    console.error('❌ Error in userService.createUser:', createError);
+                    console.error('❌ Error details:', {
+                        name: createError.name,
+                        message: createError.message,
+                        stack: createError.stack
+                    });
                     throw createError;
                 }
             }
