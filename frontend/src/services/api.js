@@ -6,7 +6,13 @@ const api = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
   },
+  // Add cache busting parameter
+  params: {
+    _t: Date.now()
+  }
 });
 
 // Request interceptor to add JWT token

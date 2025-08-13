@@ -22,7 +22,11 @@ public class BrandController {
     @GetMapping("/brands")
     public ResponseEntity<List<BrandDTO>> getAllBrands() {
         List<BrandDTO> brands = brandService.getAllBrands();
-        return ResponseEntity.ok(brands);
+        return ResponseEntity.ok()
+                .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                .header("Pragma", "no-cache")
+                .header("Expires", "0")
+                .body(brands);
     }
     
     @GetMapping("/brands/{id}")
@@ -75,7 +79,11 @@ public class BrandController {
     @GetMapping("/public/brands")
     public ResponseEntity<List<BrandDTO>> getPublicBrands() {
         List<BrandDTO> brands = brandService.getAllBrands();
-        return ResponseEntity.ok(brands);
+        return ResponseEntity.ok()
+                .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                .header("Pragma", "no-cache")
+                .header("Expires", "0")
+                .body(brands);
     }
     
     @GetMapping("/public/brands/category/{categoryId}")
