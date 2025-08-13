@@ -94,6 +94,9 @@ public class FileUploadController {
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                        .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                        .header("Pragma", "no-cache")
+                        .header("Expires", "0")
                         .body(resource);
             } else {
                 return ResponseEntity.notFound().build();
