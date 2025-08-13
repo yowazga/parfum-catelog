@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { fileUploadService } from '../services/fileUploadService';
+import { getImageUrl } from '../utils/imageUtils';
 
 const BrandCard = ({ brand }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -11,7 +12,7 @@ const BrandCard = ({ brand }) => {
       <div className="relative">
         {brand.imageUrl && !imageError ? (
           <img 
-            src={fileUploadService.getFileUrl(brand.imageUrl)} 
+            src={getImageUrl(brand.imageUrl)} 
             alt={brand.name}
             className="w-full h-48 object-cover"
             onError={() => setImageError(true)}

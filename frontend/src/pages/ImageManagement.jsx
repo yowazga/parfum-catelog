@@ -4,6 +4,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { brandService } from '../services/brandService';
 import { fileUploadService } from '../services/fileUploadService';
 import AdminLayout from '../components/AdminLayout';
+import { getImageUrl } from '../utils/imageUtils';
 
 const ImageManagement = () => {
   const { categories, getAllBrands, fetchDataFromAPI } = useData();
@@ -171,7 +172,7 @@ const ImageManagement = () => {
                     </div>
                     <div className="aspect-w-1 aspect-h-1 mb-3">
                       <img
-                        src={fileUploadService.getFileUrl(brand.imageUrl)}
+                        src={getImageUrl(brand.imageUrl)}
                         alt={`${brand.name} logo`}
                         className="w-full h-32 object-cover rounded-lg border border-gray-200"
                       />

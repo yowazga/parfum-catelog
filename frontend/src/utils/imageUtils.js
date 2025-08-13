@@ -29,5 +29,7 @@ export const getImageUrl = (filename) => {
   if (!filename) return '';
   
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
-  return `${baseUrl}/files/${filename}?_t=${Date.now()}`;
+  // Use a more unique timestamp to prevent any caching
+  const timestamp = Date.now() + Math.random();
+  return `${baseUrl}/files/${filename}?_t=${timestamp}`;
 };

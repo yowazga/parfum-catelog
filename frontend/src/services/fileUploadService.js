@@ -73,8 +73,9 @@ export const fileUploadService = {
       return filename;
     }
     
-    // Otherwise, construct the full URL (assumes just filename)
-    return `${API_BASE_URL}/files/${filename}`;
+    // Otherwise, construct the full URL with cache busting (assumes just filename)
+    const timestamp = Date.now() + Math.random();
+    return `${API_BASE_URL}/files/${filename}?_t=${timestamp}`;
   },
 
   // Validate file before upload

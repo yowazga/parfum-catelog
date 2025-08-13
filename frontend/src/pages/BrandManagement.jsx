@@ -7,6 +7,7 @@ import { importFromCSV, importFromJSON } from '../utils/importUtils';
 import { useData } from '../contexts/DataContext';
 import { brandService } from '../services/brandService';
 import { fileUploadService } from '../services/fileUploadService';
+import { getImageUrl } from '../utils/imageUtils';
 
 const BrandManagement = () => {
   const { brandId } = useParams();
@@ -704,7 +705,7 @@ const BrandManagement = () => {
                 {formData.imageUrl && (
                   <div className="mt-3">
                     <img 
-                      src={formData.imageUrl} 
+                      src={getImageUrl(formData.imageUrl)} 
                       alt="Preview" 
                       className="w-32 h-32 object-cover rounded-xl border border-slate-200 shadow-md"
                       onError={(e) => { e.target.style.display = 'none'; }}
@@ -998,7 +999,7 @@ const BrandManagement = () => {
                         {brand.imageUrl && (
                           <div className="mt-4">
                             <img 
-                              src={fileUploadService.getFileUrl(brand.imageUrl)} 
+                              src={getImageUrl(brand.imageUrl)} 
                               alt={brand.name} 
                               className="w-full h-40 object-cover rounded-xl border border-slate-200 shadow-md"
                             />
